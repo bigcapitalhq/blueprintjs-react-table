@@ -11,6 +11,7 @@ import type { TableLayout } from '../common/dimensions.ts';
 export type TableContainerProps<TData extends BP_RowData> = HTMLPropsRef<HTMLDivElement> &
   TableLayout & {
     table: BP_TableInstance<TData>;
+    enableColumnReordering?: boolean;
   };
 
 export function TableContainer<TData extends BP_RowData>({
@@ -18,6 +19,7 @@ export function TableContainer<TData extends BP_RowData>({
   rowHeight,
   rowHeaderWidth,
   columnHeaderHeight,
+  enableColumnReordering = false,
   className,
   ...restProps
 }: TableContainerProps<TData>) {
@@ -28,6 +30,7 @@ export function TableContainer<TData extends BP_RowData>({
         rowHeight={rowHeight}
         rowHeaderWidth={rowHeaderWidth}
         columnHeaderHeight={columnHeaderHeight}
+        enableColumnReordering={enableColumnReordering}
       />
     </div>
   );

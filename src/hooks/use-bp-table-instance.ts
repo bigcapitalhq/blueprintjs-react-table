@@ -1,6 +1,8 @@
 import {
+  columnOrderingFeature,
   columnResizingFeature,
   columnSizingFeature,
+  columnVisibilityFeature,
   tableFeatures,
   useTable,
 } from '@tanstack/react-table';
@@ -17,7 +19,7 @@ export const useBPTableInstance = <TData extends BP_RowData>(
   const table = useTable({
     ...definedTableOptions,
     initialState: definedTableOptions.initialState ?? {},
-    features: definedTableOptions.features ?? tableFeatures({ columnSizingFeature, columnResizingFeature }),
+    features: definedTableOptions.features ?? tableFeatures({ columnSizingFeature, columnResizingFeature, columnOrderingFeature, columnVisibilityFeature }),
     columnResizeMode: definedTableOptions.columnResizeMode ?? 'onEnd',
   });
 

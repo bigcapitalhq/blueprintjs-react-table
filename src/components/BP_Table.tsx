@@ -18,6 +18,7 @@ export type BP_TableProps<TData extends BP_RowData> =
     rowHeight?: number;
     rowHeaderWidth?: number;
     columnHeaderHeight?: number;
+    enableColumnReordering?: boolean;
   };
 
 export function BP_Table<TData extends BP_RowData>({
@@ -25,6 +26,7 @@ export function BP_Table<TData extends BP_RowData>({
   rowHeight = DEFAULT_ROW_HEIGHT,
   rowHeaderWidth = DEFAULT_ROW_HEADER_WIDTH,
   columnHeaderHeight = DEFAULT_COLUMN_HEADER_HEIGHT,
+  enableColumnReordering = false,
   ...tableOptions
 }: BP_TableProps<TData>) {
   const table = useBPTableInstance<TData>(tableOptions);
@@ -35,6 +37,7 @@ export function BP_Table<TData extends BP_RowData>({
       rowHeight={rowHeight}
       rowHeaderWidth={rowHeaderWidth}
       columnHeaderHeight={columnHeaderHeight}
+      enableColumnReordering={enableColumnReordering}
       {...htmlProps}
     />
   );

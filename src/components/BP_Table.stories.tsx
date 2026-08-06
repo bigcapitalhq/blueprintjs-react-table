@@ -40,6 +40,7 @@ export const Basic: Story = {
   args: {
     data,
     columns,
+    enableColumnReordering: true,
   },
   decorators: [
     (Story) => (

@@ -1,13 +1,17 @@
 import classNames from 'classnames';
+import { DragHandleVerticalIcon } from '@blueprintjs/icons';
 import { type Header } from '@tanstack/react-table';
 import {
   TABLE_COLUMN_HEADER_CELL,
   TABLE_COLUMN_NAME,
   TABLE_COLUMN_NAME_TEXT,
   TABLE_DRAGGING,
+  TABLE_HAS_REORDER_HANDLE,
   TABLE_HEADER,
   TABLE_HEADER_CONTENT,
   TABLE_LAST_IN_ROW,
+  TABLE_REORDER_HANDLE,
+  TABLE_REORDER_HANDLE_TARGET,
   TABLE_RESIZE_HANDLE,
   TABLE_RESIZE_HANDLE_TARGET,
   TABLE_RESIZE_VERTICAL,
@@ -18,6 +22,7 @@ import type {
   BP_TableFeatures,
   BP_TableInstance,
 } from '../../types.ts';
+import { useTableColumnReorder } from './table-column-reorder-context.ts';
 
 export type TableHeadCellProps<TData extends BP_RowData> = {
   table: BP_TableInstance<TData>;
@@ -37,6 +42,9 @@ export function TableHeadCell<TData extends BP_RowData>({
     typeof header.column.columnDef.header === 'string'
       ? header.column.columnDef.header
       : undefined;
+  const reorder = useTableColumnReorder();
+  const isReorderable = reorder?.enableColumnReordering ?? false;
+  const isReordering = reorder?.reorderingColumnId === header.column.id;
 
   return (
     <div
@@ -45,10 +53,21 @@ export function TableHeadCell<TData extends BP_RowData>({
         columnCellIndexClass(header.index),
         TABLE_COLUMN_HEADER_CELL,
         { [TABLE_LAST_IN_ROW]: isLastInRow },
+        { [TABLE_HAS_REORDER_HANDLE]: isReorderable },
       )}
       style={{ flexBasis: size, minWidth: 0, width: size }}
     >
       <div className={TABLE_COLUMN_NAME} title={name}>
+        {isReorderable && (
+          <div
+            className={classNames(TABLE_REORDER_HANDLE_TARGET, { [TABLE_DRAGGING]: isReordering })}
+            onPointerDown={(event) => reorder?.startReorder(header.column, event)}
+          >
+            <div className={TABLE_REORDER_HANDLE}>
+              <DragHandleVerticalIcon title="Press down to drag" />
+            </div>
+          </div>
+        )}
         <div className={TABLE_COLUMN_NAME_TEXT}>
           <table.FlexRender header={header} />
         </div>
