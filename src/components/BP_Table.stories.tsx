@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import type { ComponentType } from 'react';
 import { createColumnHelper } from '@tanstack/react-table';
 import { BP_Table, type BP_TableProps } from './BP_Table';
-import type { BP_TableFeatures } from '../types.ts';
+import { TableLoadingOption, type BP_TableFeatures } from '../types.ts';
 import './BP_Table.stories.css';
 
 type Person = {
@@ -41,6 +41,26 @@ export const Basic: Story = {
     data,
     columns,
     enableColumnReordering: true,
+  },
+  decorators: [
+    (Story) => (
+      <div className="bp-table-demo-wrapper">
+        <Story />
+      </div>
+    ),
+  ],
+};
+
+export const Loading: Story = {
+  args: {
+    data,
+    columns,
+    enableColumnReordering: true,
+    loadingOptions: [
+      TableLoadingOption.CELLS,
+      TableLoadingOption.COLUMN_HEADERS,
+      TableLoadingOption.ROW_HEADERS,
+    ],
   },
   decorators: [
     (Story) => (

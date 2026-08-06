@@ -10,10 +10,12 @@ import { TableHead } from './TableHead.tsx';
 
 export type TableColumnHeadersProps<TData extends BP_RowData> = HTMLPropsRef<HTMLDivElement> & {
   table: BP_TableInstance<TData>;
+  areColumnHeadersLoading: boolean;
 };
 
 export function TableColumnHeaders<TData extends BP_RowData>({
   table,
+  areColumnHeadersLoading,
   className,
   ...restProps
 }: TableColumnHeadersProps<TData>) {
@@ -28,7 +30,12 @@ export function TableColumnHeaders<TData extends BP_RowData>({
     >
       <div style={{ width: totalWidth }}>
         {table.getHeaderGroups().map((headerGroup) => (
-          <TableHead key={headerGroup.id} table={table} headerGroup={headerGroup} />
+          <TableHead
+            key={headerGroup.id}
+            table={table}
+            headerGroup={headerGroup}
+            areColumnHeadersLoading={areColumnHeadersLoading}
+          />
         ))}
       </div>
     </div>

@@ -1,6 +1,8 @@
 import classNames from 'classnames';
+import { Classes } from '@blueprintjs/core';
 import { DragHandleVerticalIcon } from '@blueprintjs/icons';
 import { type Header } from '@tanstack/react-table';
+import { LoadableContent } from '../common/LoadableContent.tsx';
 import {
   TABLE_COLUMN_HEADER_CELL,
   TABLE_COLUMN_NAME,
@@ -28,12 +30,14 @@ export type TableHeadCellProps<TData extends BP_RowData> = {
   table: BP_TableInstance<TData>;
   header: Header<BP_TableFeatures, TData, unknown>;
   isLastInRow: boolean;
+  loading: boolean;
 };
 
 export function TableHeadCell<TData extends BP_RowData>({
   table,
   header,
   isLastInRow,
+  loading,
 }: TableHeadCellProps<TData>) {
   const size = header.getSize();
   const isResizing = header.column.getIsResizing();
@@ -54,6 +58,7 @@ export function TableHeadCell<TData extends BP_RowData>({
         TABLE_COLUMN_HEADER_CELL,
         { [TABLE_LAST_IN_ROW]: isLastInRow },
         { [TABLE_HAS_REORDER_HANDLE]: isReorderable },
+        { [Classes.LOADING]: loading },
       )}
       style={{ flexBasis: size, minWidth: 0, width: size }}
     >
@@ -69,19 +74,23 @@ export function TableHeadCell<TData extends BP_RowData>({
           </div>
         )}
         <div className={TABLE_COLUMN_NAME_TEXT}>
-          <table.FlexRender header={header} />
+          <LoadableContent loading={loading} variableLength>
+            <table.FlexRender header={header} />
+          </LoadableContent>
         </div>
       </div>
       <div className={TABLE_HEADER_CONTENT} />
-      <div
-        className={classNames(TABLE_RESIZE_HANDLE_TARGET, TABLE_RESIZE_VERTICAL, {
-          [TABLE_DRAGGING]: isResizing,
-        })}
-        onMouseDown={handleResizeStart}
-        onTouchStart={handleResizeStart}
-      >
-        <div className={classNames(TABLE_RESIZE_HANDLE, { [TABLE_DRAGGING]: isResizing })} />
-      </div>
+      {!loading && (
+        <div
+          className={classNames(TABLE_RESIZE_HANDLE_TARGET, TABLE_RESIZE_VERTICAL, {
+            [TABLE_DRAGGING]: isResizing,
+          })}
+          onMouseDown={handleResizeStart}
+          onTouchStart={handleResizeStart}
+        >
+          <div className={classNames(TABLE_RESIZE_HANDLE, { [TABLE_DRAGGING]: isResizing })} />
+        </div>
+      )}
     </div>
   );
 }
