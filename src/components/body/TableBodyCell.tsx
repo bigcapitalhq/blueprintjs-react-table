@@ -1,5 +1,7 @@
 import classNames from 'classnames';
+import { Classes } from '@blueprintjs/core';
 import { type Cell } from '@tanstack/react-table';
+import { LoadableContent } from '../common/LoadableContent.tsx';
 import {
   TABLE_CELL,
   TABLE_CELL_LEDGER_EVEN,
@@ -24,6 +26,7 @@ export type TableBodyCellProps<TData extends BP_RowData> = {
   rowIndex: number;
   columnIndex: number;
   rowHeight: number;
+  loading: boolean;
   isLastInRow: boolean;
   isLastInColumn: boolean;
 };
@@ -34,6 +37,7 @@ export function TableBodyCell<TData extends BP_RowData>({
   rowIndex,
   columnIndex,
   rowHeight,
+  loading,
   isLastInRow,
   isLastInColumn,
 }: TableBodyCellProps<TData>) {
@@ -51,6 +55,7 @@ export function TableBodyCell<TData extends BP_RowData>({
         {
           [TABLE_LAST_IN_ROW]: isLastInRow,
           [TABLE_LAST_IN_COLUMN]: isLastInColumn,
+          [Classes.LOADING]: loading,
         },
       )}
       style={{
@@ -62,7 +67,9 @@ export function TableBodyCell<TData extends BP_RowData>({
       }}
     >
       <div className={classNames(TABLE_TRUNCATED_TEXT, TABLE_NO_WRAP_TEXT)}>
-        <table.FlexRender cell={cell} />
+        <LoadableContent loading={loading} variableLength>
+          <table.FlexRender cell={cell} />
+        </LoadableContent>
       </div>
     </div>
   );

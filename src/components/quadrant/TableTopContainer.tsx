@@ -12,19 +12,21 @@ export type TableTopContainerProps<TData extends BP_RowData> = HTMLPropsRef<HTML
   table: BP_TableInstance<TData>;
   rowHeaderWidth: number;
   columnHeaderHeight: number;
+  areColumnHeadersLoading: boolean;
 };
 
 export function TableTopContainer<TData extends BP_RowData>({
   table,
   rowHeaderWidth,
   columnHeaderHeight,
+  areColumnHeadersLoading,
   className,
   ...restProps
 }: TableTopContainerProps<TData>) {
   return (
     <div {...restProps} className={classNames(TABLE_TOP_CONTAINER, className)}>
       <TableMenu width={rowHeaderWidth} height={columnHeaderHeight} />
-      <TableColumnHeaders table={table} />
+      <TableColumnHeaders table={table} areColumnHeadersLoading={areColumnHeadersLoading} />
     </div>
   );
 }

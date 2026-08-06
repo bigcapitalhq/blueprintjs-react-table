@@ -4,6 +4,10 @@ import type {
   BP_TableOptions,
   HTMLPropsRef,
 } from '../types.ts';
+import {
+  hasLoadingOption,
+  TableLoadingOption,
+} from '../types.ts';
 import { useBPTableInstance } from '../hooks/use-bp-table-instance.ts';
 import {
   DEFAULT_COLUMN_HEADER_HEIGHT,
@@ -18,6 +22,8 @@ export type BP_TableProps<TData extends BP_RowData> =
     rowHeight?: number;
     rowHeaderWidth?: number;
     columnHeaderHeight?: number;
+    enableColumnReordering?: boolean;
+    loadingOptions?: TableLoadingOption[];
   };
 
 export function BP_Table<TData extends BP_RowData>({
@@ -25,9 +31,18 @@ export function BP_Table<TData extends BP_RowData>({
   rowHeight = DEFAULT_ROW_HEIGHT,
   rowHeaderWidth = DEFAULT_ROW_HEADER_WIDTH,
   columnHeaderHeight = DEFAULT_COLUMN_HEADER_HEIGHT,
+  enableColumnReordering = false,
+  loadingOptions = [],
   ...tableOptions
 }: BP_TableProps<TData>) {
   const table = useBPTableInstance<TData>(tableOptions);
+
+  const areCellsLoading = hasLoadingOption(loadingOptions, TableLoadingOption.CELLS);
+  const areColumnHeadersLoading = hasLoadingOption(
+    loadingOptions,
+    TableLoadingOption.COLUMN_HEADERS,
+  );
+  const areRowHeadersLoading = hasLoadingOption(loadingOptions, TableLoadingOption.ROW_HEADERS);
 
   return (
     <TableContainer
@@ -35,6 +50,10 @@ export function BP_Table<TData extends BP_RowData>({
       rowHeight={rowHeight}
       rowHeaderWidth={rowHeaderWidth}
       columnHeaderHeight={columnHeaderHeight}
+      enableColumnReordering={enableColumnReordering}
+      areCellsLoading={areCellsLoading}
+      areColumnHeadersLoading={areColumnHeadersLoading}
+      areRowHeadersLoading={areRowHeadersLoading}
       {...htmlProps}
     />
   );

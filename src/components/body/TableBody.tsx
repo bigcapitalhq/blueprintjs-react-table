@@ -15,11 +15,13 @@ import { TableBodyCell } from './TableBodyCell.tsx';
 export type TableBodyProps<TData extends BP_RowData> = HTMLPropsRef<HTMLDivElement> & {
   table: BP_TableInstance<TData>;
   rowHeight: number;
+  areCellsLoading: boolean;
 };
 
 export function TableBody<TData extends BP_RowData>({
   table,
   rowHeight,
+  areCellsLoading,
   className,
   ...restProps
 }: TableBodyProps<TData>) {
@@ -45,6 +47,7 @@ export function TableBody<TData extends BP_RowData>({
                   rowIndex={rowIndex}
                   columnIndex={columnIndex}
                   rowHeight={rowHeight}
+                  loading={areCellsLoading}
                   isLastInRow={columnIndex === row.getAllCells().length - 1}
                   isLastInColumn={rowIndex === lastRowIndex}
                 />

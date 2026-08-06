@@ -14,12 +14,14 @@ export type TableRowHeadersProps<TData extends BP_RowData> = HTMLPropsRef<HTMLDi
   table: BP_TableInstance<TData>;
   rowHeight: number;
   rowHeaderWidth: number;
+  areRowHeadersLoading: boolean;
 };
 
 export function TableRowHeaders<TData extends BP_RowData>({
   table,
   rowHeight,
   rowHeaderWidth,
+  areRowHeadersLoading,
   className,
   ...restProps
 }: TableRowHeadersProps<TData>) {
@@ -43,6 +45,7 @@ export function TableRowHeaders<TData extends BP_RowData>({
               key={row.id}
               rowIndex={rowIndex}
               rowHeight={rowHeight}
+              loading={areRowHeadersLoading}
               isLastInColumn={rowIndex === lastRowIndex}
             />
           ))}

@@ -12,12 +12,16 @@ export type TableBottomContainerProps<TData extends BP_RowData> = HTMLPropsRef<H
   table: BP_TableInstance<TData>;
   rowHeight: number;
   rowHeaderWidth: number;
+  areCellsLoading: boolean;
+  areRowHeadersLoading: boolean;
 };
 
 export function TableBottomContainer<TData extends BP_RowData>({
   table,
   rowHeight,
   rowHeaderWidth,
+  areCellsLoading,
+  areRowHeadersLoading,
   className,
   ...restProps
 }: TableBottomContainerProps<TData>) {
@@ -29,8 +33,13 @@ export function TableBottomContainer<TData extends BP_RowData>({
       className={classNames(TABLE_BOTTOM_CONTAINER, className)}
       style={{ height: totalHeight }}
     >
-      <TableRowHeaders table={table} rowHeight={rowHeight} rowHeaderWidth={rowHeaderWidth} />
-      <TableBody table={table} rowHeight={rowHeight} />
+      <TableRowHeaders
+        table={table}
+        rowHeight={rowHeight}
+        rowHeaderWidth={rowHeaderWidth}
+        areRowHeadersLoading={areRowHeadersLoading}
+      />
+      <TableBody table={table} rowHeight={rowHeight} areCellsLoading={areCellsLoading} />
     </div>
   );
 }
