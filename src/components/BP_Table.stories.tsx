@@ -40,8 +40,12 @@ export const Basic: Story = {
   args: {
     data,
     columns,
-    htmlProps: {
-      className: 'bp-table-demo',
-    },
   },
+  decorators: [
+    (Story) => (
+      <div className="bp-table-demo-wrapper">
+        <Story />
+      </div>
+    ),
+  ],
 };
