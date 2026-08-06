@@ -1,23 +1,58 @@
+import classNames from 'classnames';
+import {
+  TABLE_BODY_CELLS,
+  TABLE_BODY_VIRTUAL_CLIENT,
+  TABLE_CELL_CLIENT,
+  TABLE_QUADRANT_BODY_CONTAINER,
+} from '../common/classes.ts';
 import type {
   BP_RowData,
   BP_TableInstance,
   HTMLPropsRef,
 } from '../../types.ts';
-import { TableBodyRow } from './TableBodyRow.tsx';
+import { TableBodyCell } from './TableBodyCell.tsx';
 
-export type TableBodyProps<TData extends BP_RowData> = HTMLPropsRef<HTMLTableSectionElement> & {
+export type TableBodyProps<TData extends BP_RowData> = HTMLPropsRef<HTMLDivElement> & {
   table: BP_TableInstance<TData>;
+  rowHeight: number;
 };
 
 export function TableBody<TData extends BP_RowData>({
   table,
+  rowHeight,
+  className,
   ...restProps
 }: TableBodyProps<TData>) {
+  const rows = table.getRowModel().rows;
+  const totalWidth = table.getTotalSize();
+  const totalHeight = rows.length * rowHeight;
+  const lastRowIndex = rows.length - 1;
+
   return (
-    <tbody {...restProps}>
-      {table.getRowModel().rows.map((row) => (
-        <TableBodyRow key={row.id} table={table} row={row} />
-      ))}
-    </tbody>
+    <div {...restProps} className={classNames(TABLE_QUADRANT_BODY_CONTAINER, className)}>
+      <div>
+        <div
+          className={classNames(TABLE_BODY_VIRTUAL_CLIENT, TABLE_CELL_CLIENT)}
+          style={{ height: totalHeight, width: totalWidth }}
+        >
+          <div className={TABLE_BODY_CELLS}>
+            {rows.map((row, rowIndex) =>
+              row.getAllCells().map((cell, columnIndex) => (
+                <TableBodyCell
+                  key={cell.id}
+                  table={table}
+                  cell={cell}
+                  rowIndex={rowIndex}
+                  columnIndex={columnIndex}
+                  rowHeight={rowHeight}
+                  isLastInRow={columnIndex === row.getAllCells().length - 1}
+                  isLastInColumn={rowIndex === lastRowIndex}
+                />
+              )),
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
