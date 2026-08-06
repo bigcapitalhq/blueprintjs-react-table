@@ -1,0 +1,15 @@
+.bp-table-demo {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.bp-table-demo th,
+.bp-table-demo td {
+  border: 1px solid #555;
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+}
+
+.bp-table-demo th {
+  background: rgba(255, 255, 255, 0.08);
+}
