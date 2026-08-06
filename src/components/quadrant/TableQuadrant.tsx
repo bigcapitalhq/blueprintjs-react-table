@@ -14,11 +14,13 @@ import type {
   BP_RowData,
   BP_TableInstance,
   HTMLPropsRef,
+  TableLoading,
 } from '../../types.ts';
 import type { TableLayout } from '../common/dimensions.ts';
 
 export type TableQuadrantProps<TData extends BP_RowData> = HTMLPropsRef<HTMLDivElement> &
-  TableLayout & {
+  TableLayout &
+  TableLoading & {
     table: BP_TableInstance<TData>;
     enableColumnReordering?: boolean;
   };
@@ -29,6 +31,9 @@ export function TableQuadrant<TData extends BP_RowData>({
   rowHeaderWidth,
   columnHeaderHeight,
   enableColumnReordering = false,
+  areCellsLoading,
+  areColumnHeadersLoading,
+  areRowHeadersLoading,
   className,
   ...restProps
 }: TableQuadrantProps<TData>) {
@@ -45,11 +50,14 @@ export function TableQuadrant<TData extends BP_RowData>({
             table={table}
             rowHeaderWidth={rowHeaderWidth}
             columnHeaderHeight={columnHeaderHeight}
+            areColumnHeadersLoading={areColumnHeadersLoading}
           />
           <TableBottomContainer
             table={table}
             rowHeight={rowHeight}
             rowHeaderWidth={rowHeaderWidth}
+            areCellsLoading={areCellsLoading}
+            areRowHeadersLoading={areRowHeadersLoading}
           />
           <TableResizeGuides table={table} />
           <TableReorderGuides
