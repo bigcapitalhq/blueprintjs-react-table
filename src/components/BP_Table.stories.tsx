@@ -70,3 +70,24 @@ export const Loading: Story = {
     ),
   ],
 };
+
+export const FocusSelection: Story = {
+  args: {
+    data,
+    columns,
+    enableColumnReordering: true,
+    enableFocusedCell: true,
+  },
+  decorators: [
+    (Story) => (
+      <div className="bp-table-demo-wrapper">
+        <Story />
+        <p className="bp-table-demo-hint">
+          Click a cell to focus/select. Drag to select a range. Click row/column headers or the
+          corner menu to select rows/columns/all. Arrow keys move focus; Shift+arrows resize
+          selection; Cmd/Ctrl+A selects all.
+        </p>
+      </div>
+    ),
+  ],
+};

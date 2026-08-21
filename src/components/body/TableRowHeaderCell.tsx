@@ -1,6 +1,7 @@
 import classNames from 'classnames';
 import { Classes } from '@blueprintjs/core';
 import { LoadableContent } from '../common/LoadableContent.tsx';
+import { useTableSelection } from '../common/table-selection-context.ts';
 import {
   TABLE_HEADER,
   TABLE_LAST_IN_COLUMN,
@@ -28,6 +29,7 @@ export function TableRowHeaderCell({
   className,
   ...restProps
 }: TableRowHeaderCellProps) {
+  const selection = useTableSelection();
   return (
     <div
       {...restProps}
@@ -36,6 +38,7 @@ export function TableRowHeaderCell({
         [Classes.LOADING]: loading,
       }, className)}
       style={{ flexBasis: rowHeight, height: rowHeight, minHeight: 0 }}
+      onMouseDown={(event) => selection?.handleRowHeaderMouseDown(rowIndex, event)}
     >
       <div className={TABLE_ROW_NAME}>
         <div className={TABLE_ROW_NAME_TEXT}>

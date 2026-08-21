@@ -25,6 +25,7 @@ import type {
   BP_TableInstance,
 } from '../../types.ts';
 import { useTableColumnReorder } from './table-column-reorder-context.ts';
+import { useTableSelection } from '../common/table-selection-context.ts';
 
 export type TableHeadCellProps<TData extends BP_RowData> = {
   table: BP_TableInstance<TData>;
@@ -47,6 +48,7 @@ export function TableHeadCell<TData extends BP_RowData>({
       ? header.column.columnDef.header
       : undefined;
   const reorder = useTableColumnReorder();
+  const selection = useTableSelection();
   const isReorderable = reorder?.enableColumnReordering ?? false;
   const isReordering = reorder?.reorderingColumnId === header.column.id;
 
@@ -61,6 +63,7 @@ export function TableHeadCell<TData extends BP_RowData>({
         { [Classes.LOADING]: loading },
       )}
       style={{ flexBasis: size, minWidth: 0, width: size }}
+      onMouseDown={(event) => selection?.handleColumnHeaderMouseDown(header.index, event)}
     >
       <div className={TABLE_COLUMN_NAME} title={name}>
         {isReorderable && (
