@@ -11,6 +11,8 @@ import type {
   HTMLPropsRef,
 } from '../../types.ts';
 import { TableBodyCell } from './TableBodyCell.tsx';
+import { TableRegionLayer } from '../layers/TableRegionLayer.tsx';
+import { useTableSelection } from '../common/table-selection-context.ts';
 
 export type TableBodyProps<TData extends BP_RowData> = HTMLPropsRef<HTMLDivElement> & {
   table: BP_TableInstance<TData>;
@@ -25,6 +27,7 @@ export function TableBody<TData extends BP_RowData>({
   className,
   ...restProps
 }: TableBodyProps<TData>) {
+  const selection = useTableSelection();
   const rows = table.getRowModel().rows;
   const totalWidth = table.getTotalSize();
   const totalHeight = rows.length * rowHeight;
@@ -36,6 +39,10 @@ export function TableBody<TData extends BP_RowData>({
         <div
           className={classNames(TABLE_BODY_VIRTUAL_CLIENT, TABLE_CELL_CLIENT)}
           style={{ height: totalHeight, width: totalWidth }}
+          onPointerDown={selection?.handleBodyPointerDown}
+          onPointerMove={selection?.handleBodyPointerMove}
+          onPointerUp={selection?.handleBodyPointerUp}
+          onPointerCancel={selection?.handleBodyPointerCancel}
         >
           <div className={TABLE_BODY_CELLS}>
             {rows.map((row, rowIndex) =>
@@ -54,6 +61,9 @@ export function TableBody<TData extends BP_RowData>({
               )),
             )}
           </div>
+          {selection != null && selection.regionGroups.length > 0 && (
+            <TableRegionLayer table={table} regionGroups={selection.regionGroups} rowHeight={rowHeight} />
+          )}
         </div>
       </div>
     </div>
