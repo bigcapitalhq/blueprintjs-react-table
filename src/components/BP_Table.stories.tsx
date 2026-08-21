@@ -91,3 +91,32 @@ export const FocusSelection: Story = {
     ),
   ],
 };
+
+const virtualizedData: Person[] = Array.from({ length: 10_000 }, (_, index) => ({
+  id: index + 1,
+  name: `Person ${index + 1}`,
+  age: 20 + (index % 60),
+  role: ['Engineer', 'Designer', 'Manager', 'Analyst'][index % 4],
+}));
+
+export const RowVirtualization: Story = {
+  args: {
+    data: virtualizedData,
+    columns,
+    enableColumnReordering: true,
+    enableFocusedCell: true,
+    enableRowVirtualization: true,
+    overscanRowCount: 10,
+  },
+  decorators: [
+    (Story) => (
+      <div className="bp-table-demo-wrapper">
+        <Story />
+        <p className="bp-table-demo-hint">
+          Renders only the visible rows (plus overscan) out of 10,000. Scrolling, focus, and
+          selection still operate on the full data set.
+        </p>
+      </div>
+    ),
+  ],
+};

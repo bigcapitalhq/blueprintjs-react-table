@@ -3,6 +3,7 @@ import {
   TABLE_ROW_HEADERS,
   TABLE_ROW_HEADERS_CELLS_CONTAINER,
 } from '../common/classes.ts';
+import type { BP_RowVirtualizer } from '../../hooks/use-row-virtualizer.ts';
 import type {
   BP_RowData,
   BP_TableInstance,
@@ -15,6 +16,7 @@ export type TableRowHeadersProps<TData extends BP_RowData> = HTMLPropsRef<HTMLDi
   rowHeight: number;
   rowHeaderWidth: number;
   areRowHeadersLoading: boolean;
+  rowVirtualizer?: BP_RowVirtualizer;
 };
 
 export function TableRowHeaders<TData extends BP_RowData>({
@@ -22,12 +24,25 @@ export function TableRowHeaders<TData extends BP_RowData>({
   rowHeight,
   rowHeaderWidth,
   areRowHeadersLoading,
+  rowVirtualizer,
   className,
   ...restProps
 }: TableRowHeadersProps<TData>) {
   const rows = table.getRowModel().rows;
   const totalHeight = rows.length * rowHeight;
   const lastRowIndex = rows.length - 1;
+
+  const virtualRows = rowVirtualizer?.getVirtualItems();
+  // Virtual item offsets include the scroll margin (the header area above the
+  // body inside the shared scroll container); subtract it to align with the
+  // body's coordinate space.
+  const scrollMargin = rowVirtualizer?.options.scrollMargin ?? 0;
+  const paddingTop =
+    virtualRows != null && virtualRows.length > 0 ? virtualRows[0].start - scrollMargin : 0;
+  const paddingBottom =
+    virtualRows != null && virtualRows.length > 0
+      ? totalHeight - (virtualRows[virtualRows.length - 1].end - scrollMargin)
+      : 0;
 
   return (
     <div
@@ -38,15 +53,23 @@ export function TableRowHeaders<TData extends BP_RowData>({
       <div style={{ height: totalHeight }}>
         <div
           className={TABLE_ROW_HEADERS_CELLS_CONTAINER}
-          style={{ height: totalHeight, transform: 'translateY(0px)' }}
+          style={{
+            height: totalHeight,
+            transform: 'translateY(0px)',
+            paddingTop,
+            paddingBottom,
+          }}
         >
-          {rows.map((row, rowIndex) => (
+          {(virtualRows != null
+            ? virtualRows.map((virtualRow) => ({ index: virtualRow.index }))
+            : rows.map((_, rowIndex) => ({ index: rowIndex }))
+          ).map(({ index }) => (
             <TableRowHeaderCell
-              key={row.id}
-              rowIndex={rowIndex}
+              key={rows[index]?.id ?? index}
+              rowIndex={index}
               rowHeight={rowHeight}
               loading={areRowHeadersLoading}
-              isLastInColumn={rowIndex === lastRowIndex}
+              isLastInColumn={index === lastRowIndex}
             />
           ))}
         </div>

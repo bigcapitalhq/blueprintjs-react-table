@@ -5,6 +5,7 @@ import {
   TABLE_CELL_CLIENT,
   TABLE_QUADRANT_BODY_CONTAINER,
 } from '../common/classes.ts';
+import type { BP_RowVirtualizer } from '../../hooks/use-row-virtualizer.ts';
 import type {
   BP_RowData,
   BP_TableInstance,
@@ -18,12 +19,14 @@ export type TableBodyProps<TData extends BP_RowData> = HTMLPropsRef<HTMLDivEleme
   table: BP_TableInstance<TData>;
   rowHeight: number;
   areCellsLoading: boolean;
+  rowVirtualizer?: BP_RowVirtualizer;
 };
 
 export function TableBody<TData extends BP_RowData>({
   table,
   rowHeight,
   areCellsLoading,
+  rowVirtualizer,
   className,
   ...restProps
 }: TableBodyProps<TData>) {
@@ -32,6 +35,19 @@ export function TableBody<TData extends BP_RowData>({
   const totalWidth = table.getTotalSize();
   const totalHeight = rows.length * rowHeight;
   const lastRowIndex = rows.length - 1;
+
+  const virtualRows = rowVirtualizer?.getVirtualItems();
+  // Virtual item offsets include the scroll margin (the header area above the
+  // body inside the shared scroll container); body cells are positioned
+  // relative to the body, so subtract it back out.
+  const scrollMargin = rowVirtualizer?.options.scrollMargin ?? 0;
+  const visibleRows =
+    virtualRows != null
+      ? virtualRows.map((virtualRow) => ({ virtualRow, row: rows[virtualRow.index] }))
+      : rows.map((row, rowIndex) => ({
+          virtualRow: { index: rowIndex, start: rowIndex * rowHeight + scrollMargin },
+          row,
+        }));
 
   return (
     <div {...restProps} className={classNames(TABLE_QUADRANT_BODY_CONTAINER, className)}>
@@ -45,18 +61,19 @@ export function TableBody<TData extends BP_RowData>({
           onPointerCancel={selection?.handleBodyPointerCancel}
         >
           <div className={TABLE_BODY_CELLS}>
-            {rows.map((row, rowIndex) =>
+            {visibleRows.map(({ virtualRow, row }) =>
               row.getAllCells().map((cell, columnIndex) => (
                 <TableBodyCell
                   key={cell.id}
                   table={table}
                   cell={cell}
-                  rowIndex={rowIndex}
+                  rowIndex={virtualRow.index}
+                  rowTop={virtualRow.start - scrollMargin}
                   columnIndex={columnIndex}
                   rowHeight={rowHeight}
                   loading={areCellsLoading}
                   isLastInRow={columnIndex === row.getAllCells().length - 1}
-                  isLastInColumn={rowIndex === lastRowIndex}
+                  isLastInColumn={virtualRow.index === lastRowIndex}
                 />
               )),
             )}
