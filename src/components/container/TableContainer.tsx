@@ -11,6 +11,7 @@ import {
   type Region,
 } from '../common/region.ts';
 import { useCellFocusSelection } from '../../hooks/use-cell-focus-selection.ts';
+import type { RowVirtualizerOptions } from '../../hooks/use-row-virtualizer.ts';
 import { TableQuadrant } from '../quadrant/TableQuadrant.tsx';
 import type {
   BP_RowData,
@@ -22,7 +23,11 @@ import type { TableLayout } from '../common/dimensions.ts';
 
 export type TableContainerProps<TData extends BP_RowData> = HTMLPropsRef<HTMLDivElement> &
   TableLayout &
-  TableLoading & {
+  TableLoading &
+  Pick<
+    RowVirtualizerOptions<TData>,
+    'enableRowVirtualization' | 'overscanRowCount'
+  > & {
     table: BP_TableInstance<TData>;
     enableColumnReordering?: boolean;
     enableFocusedCell?: boolean;
@@ -50,6 +55,8 @@ export function TableContainer<TData extends BP_RowData>({
   selectedRegions,
   onSelection,
   selectionModes,
+  enableRowVirtualization,
+  overscanRowCount,
   className,
   ...restProps
 }: TableContainerProps<TData>) {
@@ -83,6 +90,8 @@ export function TableContainer<TData extends BP_RowData>({
         areColumnHeadersLoading={areColumnHeadersLoading}
         areRowHeadersLoading={areRowHeadersLoading}
         selection={selection}
+        enableRowVirtualization={enableRowVirtualization}
+        overscanRowCount={overscanRowCount}
         scrollContainerRef={scrollContainerRef}
       />
     </div>

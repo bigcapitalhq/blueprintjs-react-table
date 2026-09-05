@@ -9,6 +9,7 @@ import {
   TableLoadingOption,
 } from '../types.ts';
 import { useBPTableInstance } from '../hooks/use-bp-table-instance.ts';
+import { DEFAULT_OVERSCAN_ROW_COUNT } from '../hooks/use-row-virtualizer.ts';
 import type {
   FocusedCellCoordinates,
   FocusedRegion,
@@ -59,6 +60,21 @@ export type BP_TableProps<TData extends BP_RowData> =
      * Which region cardinalities are selectable. Defaults to all of them.
      */
     selectionModes?: RegionCardinality[];
+    /**
+     * If `true`, only the rows currently visible in the scroll container (plus
+     * an overscan buffer) are rendered, allowing the table to scale to very
+     * large data sets. Requires a fixed `rowHeight`.
+     *
+     * @default false
+     */
+    enableRowVirtualization?: boolean;
+    /**
+     * Number of rows rendered above and below the visible viewport when
+     * `enableRowVirtualization` is enabled.
+     *
+     * @default 5
+     */
+    overscanRowCount?: number;
   };
 
 export function BP_Table<TData extends BP_RowData>({
@@ -75,6 +91,8 @@ export function BP_Table<TData extends BP_RowData>({
   selectedRegions,
   onSelection,
   selectionModes,
+  enableRowVirtualization = false,
+  overscanRowCount = DEFAULT_OVERSCAN_ROW_COUNT,
   ...tableOptions
 }: BP_TableProps<TData>) {
   const table = useBPTableInstance<TData>(tableOptions);
@@ -103,6 +121,8 @@ export function BP_Table<TData extends BP_RowData>({
       selectedRegions={selectedRegions}
       onSelection={onSelection}
       selectionModes={selectionModes}
+      enableRowVirtualization={enableRowVirtualization}
+      overscanRowCount={overscanRowCount}
       {...htmlProps}
     />
   );

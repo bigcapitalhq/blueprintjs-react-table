@@ -24,6 +24,8 @@ export type TableBodyCellProps<TData extends BP_RowData> = {
   table: BP_TableInstance<TData>;
   cell: Cell<BP_TableFeatures, TData, unknown>;
   rowIndex: number;
+  /** Absolute top offset of the row within the body's virtual client. */
+  rowTop: number;
   columnIndex: number;
   rowHeight: number;
   loading: boolean;
@@ -35,6 +37,7 @@ export function TableBodyCell<TData extends BP_RowData>({
   table,
   cell,
   rowIndex,
+  rowTop,
   columnIndex,
   rowHeight,
   loading,
@@ -62,7 +65,7 @@ export function TableBodyCell<TData extends BP_RowData>({
         height: rowHeight,
         left: start,
         position: 'absolute',
-        top: rowIndex * rowHeight,
+        top: rowTop,
         width: size,
       }}
     >

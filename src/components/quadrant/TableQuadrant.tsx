@@ -8,6 +8,12 @@ import {
 import { TableSelectionContext } from '../common/table-selection-context.ts';
 import { useColumnReorder } from '../../hooks/use-column-reorder.ts';
 import type { CellFocusSelectionApi } from '../../hooks/use-cell-focus-selection.ts';
+import {
+  DEFAULT_OVERSCAN_ROW_COUNT,
+  useRowVirtualizer,
+  type BP_RowVirtualizer,
+  type RowVirtualizerOptions,
+} from '../../hooks/use-row-virtualizer.ts';
 import { TableReorderGuides } from '../layers/TableReorderGuides.tsx';
 import { TableResizeGuides } from '../layers/TableResizeGuides.tsx';
 import { TableColumnReorderContext } from '../head/table-column-reorder-context.ts';
@@ -23,7 +29,11 @@ import type { TableLayout } from '../common/dimensions.ts';
 
 export type TableQuadrantProps<TData extends BP_RowData> = HTMLPropsRef<HTMLDivElement> &
   TableLayout &
-  TableLoading & {
+  TableLoading &
+  Pick<
+    RowVirtualizerOptions<TData>,
+    'enableRowVirtualization' | 'overscanRowCount'
+  > & {
     table: BP_TableInstance<TData>;
     enableColumnReordering?: boolean;
     selection: CellFocusSelectionApi;
@@ -41,6 +51,8 @@ export function TableQuadrant<TData extends BP_RowData>({
   areRowHeadersLoading,
   selection,
   scrollContainerRef,
+  enableRowVirtualization,
+  overscanRowCount,
   className,
   ...restProps
 }: TableQuadrantProps<TData>) {
@@ -48,6 +60,15 @@ export function TableQuadrant<TData extends BP_RowData>({
     table,
     enableColumnReordering,
   );
+
+  const rowVirtualizer: BP_RowVirtualizer | undefined = useRowVirtualizer({
+    table,
+    rowHeight,
+    columnHeaderHeight,
+    scrollContainerRef,
+    enableRowVirtualization: enableRowVirtualization ?? false,
+    overscanRowCount: overscanRowCount ?? DEFAULT_OVERSCAN_ROW_COUNT,
+  });
 
   return (
     <div {...restProps} className={classNames(TABLE_QUADRANT, TABLE_QUADRANT_MAIN, className)}>
@@ -71,6 +92,7 @@ export function TableQuadrant<TData extends BP_RowData>({
               rowHeaderWidth={rowHeaderWidth}
               areCellsLoading={areCellsLoading}
               areRowHeadersLoading={areRowHeadersLoading}
+              rowVirtualizer={rowVirtualizer}
             />
             <TableResizeGuides table={table} />
             <TableReorderGuides
