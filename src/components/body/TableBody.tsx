@@ -1,19 +1,11 @@
-import classNames from 'classnames';
-import {
-  TABLE_BODY_CELLS,
-  TABLE_BODY_VIRTUAL_CLIENT,
-  TABLE_CELL_CLIENT,
-  TABLE_QUADRANT_BODY_CONTAINER,
-} from '../common/classes.ts';
 import type { BP_RowVirtualizer } from '../../hooks/use-row-virtualizer.ts';
 import type {
   BP_RowData,
   BP_TableInstance,
   HTMLPropsRef,
 } from '../../types.ts';
-import { TableBodyCell } from './TableBodyCell.tsx';
-import { TableRegionLayer } from '../layers/TableRegionLayer.tsx';
-import { useTableSelection } from '../common/table-selection-context.ts';
+import { VirtualBody } from './VirtualBody.tsx';
+import { TableStaticBody } from './TableStaticBody.tsx';
 
 export type TableBodyProps<TData extends BP_RowData> = HTMLPropsRef<HTMLDivElement> & {
   table: BP_TableInstance<TData>;
@@ -30,59 +22,9 @@ export function TableBody<TData extends BP_RowData>({
   className,
   ...restProps
 }: TableBodyProps<TData>) {
-  const selection = useTableSelection();
-  const rows = table.getRowModel().rows;
-  const totalWidth = table.getTotalSize();
-  const totalHeight = rows.length * rowHeight;
-  const lastRowIndex = rows.length - 1;
+  if (rowVirtualizer != null) {
+    return <VirtualBody table={table} rowHeight={rowHeight} areCellsLoading={areCellsLoading} rowVirtualizer={rowVirtualizer} className={className} {...restProps} />;
+  }
 
-  const virtualRows = rowVirtualizer?.getVirtualItems();
-  // Virtual item offsets include the scroll margin (the header area above the
-  // body inside the shared scroll container); body cells are positioned
-  // relative to the body, so subtract it back out.
-  const scrollMargin = rowVirtualizer?.options.scrollMargin ?? 0;
-  const visibleRows =
-    virtualRows != null
-      ? virtualRows.map((virtualRow) => ({ virtualRow, row: rows[virtualRow.index] }))
-      : rows.map((row, rowIndex) => ({
-          virtualRow: { index: rowIndex, start: rowIndex * rowHeight + scrollMargin },
-          row,
-        }));
-
-  return (
-    <div {...restProps} className={classNames(TABLE_QUADRANT_BODY_CONTAINER, className)}>
-      <div>
-        <div
-          className={classNames(TABLE_BODY_VIRTUAL_CLIENT, TABLE_CELL_CLIENT)}
-          style={{ height: totalHeight, width: totalWidth }}
-          onPointerDown={selection?.handleBodyPointerDown}
-          onPointerMove={selection?.handleBodyPointerMove}
-          onPointerUp={selection?.handleBodyPointerUp}
-          onPointerCancel={selection?.handleBodyPointerCancel}
-        >
-          <div className={TABLE_BODY_CELLS}>
-            {visibleRows.map(({ virtualRow, row }) =>
-              row.getAllCells().map((cell, columnIndex) => (
-                <TableBodyCell
-                  key={cell.id}
-                  table={table}
-                  cell={cell}
-                  rowIndex={virtualRow.index}
-                  rowTop={virtualRow.start - scrollMargin}
-                  columnIndex={columnIndex}
-                  rowHeight={rowHeight}
-                  loading={areCellsLoading}
-                  isLastInRow={columnIndex === row.getAllCells().length - 1}
-                  isLastInColumn={virtualRow.index === lastRowIndex}
-                />
-              )),
-            )}
-          </div>
-          {selection != null && selection.regionGroups.length > 0 && (
-            <TableRegionLayer table={table} regionGroups={selection.regionGroups} rowHeight={rowHeight} />
-          )}
-        </div>
-      </div>
-    </div>
-  );
+  return <TableStaticBody table={table} rowHeight={rowHeight} areCellsLoading={areCellsLoading} className={className} {...restProps} />;
 }
