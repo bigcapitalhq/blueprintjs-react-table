@@ -11,12 +11,14 @@ import { TableHeadCell } from './TableHeadCell.tsx';
 export type TableHeadProps<TData extends BP_RowData> = {
   table: BP_TableInstance<TData>;
   headerGroup: HeaderGroup<BP_TableFeatures, TData>;
+  enableSorting?: boolean;
   areColumnHeadersLoading: boolean;
 };
 
 export function TableHead<TData extends BP_RowData>({
   table,
   headerGroup,
+  enableSorting = false,
   areColumnHeadersLoading,
 }: TableHeadProps<TData>) {
   const lastHeaderId = headerGroup.headers[headerGroup.headers.length - 1]?.id;
@@ -32,6 +34,7 @@ export function TableHead<TData extends BP_RowData>({
           table={table}
           header={header}
           isLastInRow={header.id === lastHeaderId}
+          enableSorting={enableSorting}
           loading={areColumnHeadersLoading}
         />
       ))}

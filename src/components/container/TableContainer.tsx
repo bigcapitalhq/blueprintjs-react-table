@@ -30,6 +30,7 @@ export type TableContainerProps<TData extends BP_RowData> = HTMLPropsRef<HTMLDiv
   > & {
     table: BP_TableInstance<TData>;
     enableColumnReordering?: boolean;
+    enableSorting?: boolean;
     enableFocusedCell?: boolean;
     focusedCell?: FocusedCellCoordinates;
     onFocusedCell?: (cell: FocusedCellCoordinates) => void;
@@ -45,6 +46,7 @@ export function TableContainer<TData extends BP_RowData>({
   rowHeaderWidth,
   columnHeaderHeight,
   enableColumnReordering = false,
+  enableSorting = false,
   areCellsLoading,
   areColumnHeadersLoading,
   areRowHeadersLoading,
@@ -86,6 +88,7 @@ export function TableContainer<TData extends BP_RowData>({
         rowHeaderWidth={rowHeaderWidth}
         columnHeaderHeight={columnHeaderHeight}
         enableColumnReordering={enableColumnReordering}
+        enableSorting={enableSorting}
         areCellsLoading={areCellsLoading}
         areColumnHeadersLoading={areColumnHeadersLoading}
         areRowHeadersLoading={areRowHeadersLoading}

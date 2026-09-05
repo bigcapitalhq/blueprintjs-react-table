@@ -1,4 +1,6 @@
 import type { Preview } from '@storybook/react';
+import '@blueprintjs/core/lib/css/blueprint.css';
+import '@blueprintjs/icons/lib/css/blueprint-icons.css';
 import '../src/styles/table/table.scss';
 
 const preview: Preview = {

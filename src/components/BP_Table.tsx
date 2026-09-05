@@ -31,6 +31,16 @@ export type BP_TableProps<TData extends BP_RowData> =
     columnHeaderHeight?: number;
     enableColumnReordering?: boolean;
     loadingOptions?: TableLoadingOption[];
+    /**
+     * If `true`, a chevron menu appears on each sortable column header (on
+     * hover) with "Sort Asc" / "Sort Desc" actions, mirroring Blueprint's
+     * sortable table. The value is also forwarded to TanStack's
+     * `enableSorting` table option. Disable sorting for a specific column with
+     * `enableSorting: false` on its column definition.
+     *
+     * @default false
+     */
+    enableSorting?: boolean;
 
     /**
      * If `true`, a focusable "focused cell" is enabled: clicking a cell moves the
@@ -83,6 +93,7 @@ export function BP_Table<TData extends BP_RowData>({
   rowHeaderWidth = DEFAULT_ROW_HEADER_WIDTH,
   columnHeaderHeight = DEFAULT_COLUMN_HEADER_HEIGHT,
   enableColumnReordering = false,
+  enableSorting = false,
   loadingOptions = [],
   enableFocusedCell = false,
   focusedCell,
@@ -95,7 +106,7 @@ export function BP_Table<TData extends BP_RowData>({
   overscanRowCount = DEFAULT_OVERSCAN_ROW_COUNT,
   ...tableOptions
 }: BP_TableProps<TData>) {
-  const table = useBPTableInstance<TData>(tableOptions);
+  const table = useBPTableInstance<TData>({ ...tableOptions, enableSorting });
 
   const areCellsLoading = hasLoadingOption(loadingOptions, TableLoadingOption.CELLS);
   const areColumnHeadersLoading = hasLoadingOption(
@@ -111,6 +122,7 @@ export function BP_Table<TData extends BP_RowData>({
       rowHeaderWidth={rowHeaderWidth}
       columnHeaderHeight={columnHeaderHeight}
       enableColumnReordering={enableColumnReordering}
+      enableSorting={enableSorting}
       areCellsLoading={areCellsLoading}
       areColumnHeadersLoading={areColumnHeadersLoading}
       areRowHeadersLoading={areRowHeadersLoading}
