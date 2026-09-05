@@ -1,6 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import type { ComponentType } from 'react';
-import { createColumnHelper } from '@tanstack/react-table';
+import { useState, type ComponentType } from 'react';
+import {
+  createColumnHelper,
+  type SortingState,
+} from '@tanstack/react-table';
 import { BP_Table, type BP_TableProps } from './BP_Table';
 import { TableLoadingOption, type BP_TableFeatures } from '../types.ts';
 import './BP_Table.stories.css';
@@ -90,6 +93,59 @@ export const FocusSelection: Story = {
       </div>
     ),
   ],
+};
+
+export const Sorting: Story = {
+  args: {
+    data,
+    columns,
+    enableColumnReordering: true,
+    enableSorting: true,
+  },
+  decorators: [
+    (Story) => (
+      <div className="bp-table-demo-wrapper">
+        <Story />
+        <p className="bp-table-demo-hint">
+          Hover a column header and click the chevron to open the sort menu. Pick Sort Asc/Desc to
+          reorder rows, or Clear Sort to remove the current sort.
+        </p>
+      </div>
+    ),
+  ],
+};
+
+export const ControlledSorting: Story = {
+  args: {
+    data,
+    columns,
+    enableColumnReordering: true,
+    enableSorting: true,
+  },
+  render: () => {
+    function ControlledSortingTable() {
+      const [sorting, setSorting] = useState<SortingState>([]);
+      return (
+        <div className="bp-table-demo-wrapper">
+          <BP_Table
+            data={data}
+            columns={columns}
+            enableColumnReordering={true}
+            enableSorting={true}
+            state={{ sorting }}
+            onSortingChange={setSorting}
+          />
+          <p className="bp-table-demo-hint">
+            Sorting state is owned by the caller: currently{' '}
+            {sorting.length === 0
+              ? 'unsorted'
+              : sorting.map((s) => `${s.id} (${s.desc ? 'desc' : 'asc'})`).join(', ')}.
+          </p>
+        </div>
+      );
+    }
+    return <ControlledSortingTable />;
+  },
 };
 
 const virtualizedData: Person[] = Array.from({ length: 10_000 }, (_, index) => ({

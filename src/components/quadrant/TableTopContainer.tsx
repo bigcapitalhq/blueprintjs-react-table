@@ -12,6 +12,7 @@ export type TableTopContainerProps<TData extends BP_RowData> = HTMLPropsRef<HTML
   table: BP_TableInstance<TData>;
   rowHeaderWidth: number;
   columnHeaderHeight: number;
+  enableSorting?: boolean;
   areColumnHeadersLoading: boolean;
 };
 
@@ -19,6 +20,7 @@ export function TableTopContainer<TData extends BP_RowData>({
   table,
   rowHeaderWidth,
   columnHeaderHeight,
+  enableSorting = false,
   areColumnHeadersLoading,
   className,
   ...restProps
@@ -26,7 +28,11 @@ export function TableTopContainer<TData extends BP_RowData>({
   return (
     <div {...restProps} className={classNames(TABLE_TOP_CONTAINER, className)}>
       <TableMenu width={rowHeaderWidth} height={columnHeaderHeight} />
-      <TableColumnHeaders table={table} areColumnHeadersLoading={areColumnHeadersLoading} />
+      <TableColumnHeaders
+        table={table}
+        enableSorting={enableSorting}
+        areColumnHeadersLoading={areColumnHeadersLoading}
+      />
     </div>
   );
 }

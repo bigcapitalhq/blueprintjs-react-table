@@ -36,6 +36,7 @@ export type TableQuadrantProps<TData extends BP_RowData> = HTMLPropsRef<HTMLDivE
   > & {
     table: BP_TableInstance<TData>;
     enableColumnReordering?: boolean;
+    enableSorting?: boolean;
     selection: CellFocusSelectionApi;
     scrollContainerRef: MutableRefObject<HTMLDivElement | null>;
   };
@@ -46,6 +47,7 @@ export function TableQuadrant<TData extends BP_RowData>({
   rowHeaderWidth,
   columnHeaderHeight,
   enableColumnReordering = false,
+  enableSorting = false,
   areCellsLoading,
   areColumnHeadersLoading,
   areRowHeadersLoading,
@@ -84,6 +86,7 @@ export function TableQuadrant<TData extends BP_RowData>({
               table={table}
               rowHeaderWidth={rowHeaderWidth}
               columnHeaderHeight={columnHeaderHeight}
+              enableSorting={enableSorting}
               areColumnHeadersLoading={areColumnHeadersLoading}
             />
             <TableBottomContainer

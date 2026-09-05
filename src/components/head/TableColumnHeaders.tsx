@@ -10,11 +10,13 @@ import { TableHead } from './TableHead.tsx';
 
 export type TableColumnHeadersProps<TData extends BP_RowData> = HTMLPropsRef<HTMLDivElement> & {
   table: BP_TableInstance<TData>;
+  enableSorting?: boolean;
   areColumnHeadersLoading: boolean;
 };
 
 export function TableColumnHeaders<TData extends BP_RowData>({
   table,
+  enableSorting = false,
   areColumnHeadersLoading,
   className,
   ...restProps
@@ -34,6 +36,7 @@ export function TableColumnHeaders<TData extends BP_RowData>({
             key={headerGroup.id}
             table={table}
             headerGroup={headerGroup}
+            enableSorting={enableSorting}
             areColumnHeadersLoading={areColumnHeadersLoading}
           />
         ))}

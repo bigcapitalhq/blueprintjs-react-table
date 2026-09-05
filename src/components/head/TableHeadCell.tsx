@@ -1,4 +1,5 @@
 import classNames from 'classnames';
+import { useState } from 'react';
 import { Classes } from '@blueprintjs/core';
 import { DragHandleVerticalIcon } from '@blueprintjs/icons';
 import { type Header } from '@tanstack/react-table';
@@ -10,6 +11,7 @@ import {
   TABLE_DRAGGING,
   TABLE_HAS_REORDER_HANDLE,
   TABLE_HEADER,
+  TABLE_HEADER_ACTIVE,
   TABLE_HEADER_CONTENT,
   TABLE_LAST_IN_ROW,
   TABLE_REORDER_HANDLE,
@@ -26,11 +28,13 @@ import type {
 } from '../../types.ts';
 import { useTableColumnReorder } from './table-column-reorder-context.ts';
 import { useTableSelection } from '../common/table-selection-context.ts';
+import { TableColumnHeaderMenu } from './TableColumnHeaderMenu.tsx';
 
 export type TableHeadCellProps<TData extends BP_RowData> = {
   table: BP_TableInstance<TData>;
   header: Header<BP_TableFeatures, TData, unknown>;
   isLastInRow: boolean;
+  enableSorting?: boolean;
   loading: boolean;
 };
 
@@ -38,6 +42,7 @@ export function TableHeadCell<TData extends BP_RowData>({
   table,
   header,
   isLastInRow,
+  enableSorting = false,
   loading,
 }: TableHeadCellProps<TData>) {
   const size = header.getSize();
@@ -51,6 +56,8 @@ export function TableHeadCell<TData extends BP_RowData>({
   const selection = useTableSelection();
   const isReorderable = reorder?.enableColumnReordering ?? false;
   const isReordering = reorder?.reorderingColumnId === header.column.id;
+  const canSort = enableSorting && header.column.getCanSort();
+  const [isSortMenuOpen, setIsSortMenuOpen] = useState(false);
 
   return (
     <div
@@ -60,6 +67,7 @@ export function TableHeadCell<TData extends BP_RowData>({
         TABLE_COLUMN_HEADER_CELL,
         { [TABLE_LAST_IN_ROW]: isLastInRow },
         { [TABLE_HAS_REORDER_HANDLE]: isReorderable },
+        { [TABLE_HEADER_ACTIVE]: isSortMenuOpen },
         { [Classes.LOADING]: loading },
       )}
       style={{ flexBasis: size, minWidth: 0, width: size }}
@@ -75,6 +83,14 @@ export function TableHeadCell<TData extends BP_RowData>({
               <DragHandleVerticalIcon title="Press down to drag" />
             </div>
           </div>
+        )}
+        {canSort && !loading && (
+          <TableColumnHeaderMenu
+            table={table}
+            header={header}
+            isOpen={isSortMenuOpen}
+            onOpenChange={setIsSortMenuOpen}
+          />
         )}
         <div className={TABLE_COLUMN_NAME_TEXT}>
           <LoadableContent loading={loading} variableLength>
