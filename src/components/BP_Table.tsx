@@ -9,6 +9,7 @@ import {
   TableLoadingOption,
 } from '../types.ts';
 import { useBPTableInstance } from '../hooks/use-bp-table-instance.ts';
+import { useFreezePinning } from '../hooks/use-freeze-pinning.ts';
 import { DEFAULT_OVERSCAN_ROW_COUNT } from '../hooks/use-row-virtualizer.ts';
 import type {
   FocusedCellCoordinates,
@@ -85,6 +86,20 @@ export type BP_TableProps<TData extends BP_RowData> =
      * @default 5
      */
     overscanRowCount?: number;
+    /**
+     * Number of leftmost columns that are frozen (pinned) in place while all
+     * other columns remain scrollable.
+     *
+     * @default 0
+     */
+    numFrozenColumns?: number;
+    /**
+     * Number of topmost rows that are frozen (pinned) in place while all other
+     * rows remain scrollable.
+     *
+     * @default 0
+     */
+    numFrozenRows?: number;
   };
 
 export function BP_Table<TData extends BP_RowData>({
@@ -104,9 +119,13 @@ export function BP_Table<TData extends BP_RowData>({
   selectionModes,
   enableRowVirtualization = false,
   overscanRowCount = DEFAULT_OVERSCAN_ROW_COUNT,
+  numFrozenColumns = 0,
+  numFrozenRows = 0,
   ...tableOptions
 }: BP_TableProps<TData>) {
   const table = useBPTableInstance<TData>({ ...tableOptions, enableSorting });
+
+  useFreezePinning({ table, numFrozenColumns, numFrozenRows });
 
   const areCellsLoading = hasLoadingOption(loadingOptions, TableLoadingOption.CELLS);
   const areColumnHeadersLoading = hasLoadingOption(

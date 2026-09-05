@@ -19,6 +19,7 @@ import type {
   BP_TableFeatures,
   BP_TableInstance,
 } from '../../types.ts';
+import type { ColumnRegion } from '../common/pinning.ts';
 
 export type TableBodyCellProps<TData extends BP_RowData> = {
   table: BP_TableInstance<TData>;
@@ -26,6 +27,7 @@ export type TableBodyCellProps<TData extends BP_RowData> = {
   rowIndex: number;
   /** Absolute top offset of the row within the body's virtual client. */
   rowTop: number;
+  columnRegion: ColumnRegion;
   columnIndex: number;
   rowHeight: number;
   loading: boolean;
@@ -38,6 +40,7 @@ export function TableBodyCell<TData extends BP_RowData>({
   cell,
   rowIndex,
   rowTop,
+  columnRegion,
   columnIndex,
   rowHeight,
   loading,
@@ -45,7 +48,7 @@ export function TableBodyCell<TData extends BP_RowData>({
   isLastInColumn,
 }: TableBodyCellProps<TData>) {
   const size = cell.column.getSize();
-  const start = cell.column.getStart();
+  const start = cell.column.getStart(columnRegion);
 
   return (
     <div

@@ -9,10 +9,12 @@ import type {
   BP_TableInstance,
   HTMLPropsRef,
 } from '../../types.ts';
+import type { RowRegion } from '../common/pinning.ts';
 import { TableRowHeaderCell } from './TableRowHeaderCell.tsx';
 
 export type TableRowHeadersProps<TData extends BP_RowData> = HTMLPropsRef<HTMLDivElement> & {
   table: BP_TableInstance<TData>;
+  rowRegion: RowRegion;
   rowHeight: number;
   rowHeaderWidth: number;
   areRowHeadersLoading: boolean;
@@ -21,6 +23,7 @@ export type TableRowHeadersProps<TData extends BP_RowData> = HTMLPropsRef<HTMLDi
 
 export function TableRowHeaders<TData extends BP_RowData>({
   table,
+  rowRegion,
   rowHeight,
   rowHeaderWidth,
   areRowHeadersLoading,
@@ -28,11 +31,12 @@ export function TableRowHeaders<TData extends BP_RowData>({
   className,
   ...restProps
 }: TableRowHeadersProps<TData>) {
-  const rows = table.getRowModel().rows;
+  const rows = rowRegion === 'top' ? table.getTopRows() : table.getCenterRows();
   const totalHeight = rows.length * rowHeight;
   const lastRowIndex = rows.length - 1;
+  const isVirtualized = rowRegion === 'center' && rowVirtualizer != null;
 
-  const virtualRows = rowVirtualizer?.getVirtualItems();
+  const virtualRows = isVirtualized ? rowVirtualizer?.getVirtualItems() : undefined;
   // Virtual item offsets include the scroll margin (the header area above the
   // body inside the shared scroll container); subtract it to align with the
   // body's coordinate space.

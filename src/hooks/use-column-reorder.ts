@@ -6,6 +6,7 @@ import type {
   BP_TableFeatures,
   BP_TableInstance,
 } from '../types.ts';
+import { columnToNaturalIndex, columnToPixelOffset } from '../components/common/pinning.ts';
 
 /**
  * Converts an absolute "guide" index (the boundary at which the preview guide
@@ -32,7 +33,6 @@ export type ColumnReorderStartHandler = <TData extends BP_RowData>(
 
 export type ColumnReorderContextValue = {
   enableColumnReordering: boolean;
-  columnsRef: MutableRefObject<HTMLDivElement | null>;
   reorderingColumnId: string | null;
   startReorder: ColumnReorderStartHandler;
 };
@@ -40,19 +40,21 @@ export type ColumnReorderContextValue = {
 export function useColumnReorder<TData extends BP_RowData>(
   table: BP_TableInstance<TData>,
   enableColumnReordering: boolean,
+  /** Ref to the quadrant stack element; its left edge is the grid's x-origin. */
+  gridRef: MutableRefObject<HTMLDivElement | null>,
 ) {
   const [reorderingColumnId, setReorderingColumnId] = useState<string | null>(null);
   const [guideIndex, setGuideIndex] = useState<number | null>(null);
 
-  const columnsRef = useRef<HTMLDivElement | null>(null);
   const dragRef = useRef<{ oldIndex: number } | null>(null);
 
   const getGuideIndex = useCallback((clientX: number): number => {
-    const originLeft = columnsRef.current?.getBoundingClientRect().left ?? 0;
+    const originLeft = gridRef.current?.getBoundingClientRect().left ?? 0;
     const relativeX = clientX - originLeft;
     let guide = 0;
-    for (const column of table.getVisibleLeafColumns()) {
-      const midpoint = column.getStart() + column.getSize() / 2;
+    const columns = table.getVisibleLeafColumns();
+    for (let i = 0; i < columns.length; i++) {
+      const midpoint = columnToPixelOffset(table, i) + columns[i].getSize() / 2;
       if (midpoint < relativeX) {
         guide++;
       } else {
@@ -60,7 +62,7 @@ export function useColumnReorder<TData extends BP_RowData>(
       }
     }
     return guide;
-  }, [table]);
+  }, [gridRef, table]);
 
   const endReorder = useCallback((clientX: number) => {
     const drag = dragRef.current;
@@ -97,13 +99,13 @@ export function useColumnReorder<TData extends BP_RowData>(
       return;
     }
     event.preventDefault();
-    dragRef.current = { oldIndex: column.getIndex() };
+    dragRef.current = { oldIndex: columnToNaturalIndex(table, column) };
     setReorderingColumnId(column.id);
     setGuideIndex(getGuideIndex(event.clientX));
     window.addEventListener('pointermove', handlePointerMove);
     window.addEventListener('pointerup', handlePointerUp);
     window.addEventListener('pointercancel', handlePointerUp);
-  }, [enableColumnReordering, getGuideIndex, handlePointerMove, handlePointerUp]);
+  }, [enableColumnReordering, getGuideIndex, handlePointerMove, handlePointerUp, table]);
 
   useEffect(() => {
     return () => {
@@ -114,9 +116,9 @@ export function useColumnReorder<TData extends BP_RowData>(
   }, [handlePointerMove, handlePointerUp]);
 
   const contextValue = useMemo<ColumnReorderContextValue>(
-    () => ({ enableColumnReordering, columnsRef, reorderingColumnId, startReorder }),
+    () => ({ enableColumnReordering, reorderingColumnId, startReorder }),
     [enableColumnReordering, reorderingColumnId, startReorder],
   );
 
-  return { columnsRef, contextValue, guideIndex, reorderingColumnId };
+  return { contextValue, guideIndex, reorderingColumnId };
 }

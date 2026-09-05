@@ -11,12 +11,15 @@ import type {
   BP_TableInstance,
   HTMLPropsRef,
 } from '../../types.ts';
+import type { ColumnRegion } from '../common/pinning.ts';
+import { getFrozenColumnsWidth } from '../common/pinning.ts';
 import { TableBodyCell } from './TableBodyCell.tsx';
 import { TableRegionLayer } from '../layers/TableRegionLayer.tsx';
 import { useTableSelection } from '../common/table-selection-context.ts';
 
 export type VirtualBodyProps<TData extends BP_RowData> = HTMLPropsRef<HTMLDivElement> & {
   table: BP_TableInstance<TData>;
+  columnRegion: ColumnRegion;
   rowHeight: number;
   areCellsLoading: boolean;
   rowVirtualizer: BP_RowVirtualizer;
@@ -24,6 +27,7 @@ export type VirtualBodyProps<TData extends BP_RowData> = HTMLPropsRef<HTMLDivEle
 
 export function VirtualBody<TData extends BP_RowData>({
   table,
+  columnRegion,
   rowHeight,
   areCellsLoading,
   rowVirtualizer,
@@ -31,8 +35,9 @@ export function VirtualBody<TData extends BP_RowData>({
   ...restProps
 }: VirtualBodyProps<TData>) {
   const selection = useTableSelection();
-  const rows = table.getRowModel().rows;
-  const totalWidth = table.getTotalSize();
+  const rows = table.getCenterRows();
+  const totalWidth =
+    columnRegion === 'start' ? table.getStartTotalSize() : table.getCenterTotalSize();
   const totalHeight = rows.length * rowHeight;
   const lastRowIndex = rows.length - 1;
 
@@ -51,25 +56,37 @@ export function VirtualBody<TData extends BP_RowData>({
           onPointerCancel={selection?.handleBodyPointerCancel}
         >
           <div className={TABLE_BODY_CELLS}>
-            {virtualRows.map((virtualRow) =>
-              rows[virtualRow.index].getAllCells().map((cell, columnIndex) => (
+            {virtualRows.map((virtualRow) => {
+              const row = rows[virtualRow.index];
+              const cells =
+                columnRegion === 'start' ? row.getStartVisibleCells() : row.getCenterVisibleCells();
+              return cells.map((cell, columnIndex) => (
                 <TableBodyCell
                   key={cell.id}
                   table={table}
                   cell={cell}
                   rowIndex={virtualRow.index}
                   rowTop={virtualRow.start - scrollMargin}
+                  columnRegion={columnRegion}
                   columnIndex={columnIndex}
                   rowHeight={rowHeight}
                   loading={areCellsLoading}
-                  isLastInRow={columnIndex === rows[virtualRow.index].getAllCells().length - 1}
+                  isLastInRow={columnIndex === cells.length - 1}
                   isLastInColumn={virtualRow.index === lastRowIndex}
                 />
-              )),
-            )}
+              ));
+            })}
           </div>
           {selection != null && selection.regionGroups.length > 0 && (
-            <TableRegionLayer table={table} regionGroups={selection.regionGroups} rowHeight={rowHeight} />
+            <TableRegionLayer
+              table={table}
+              regionGroups={selection.regionGroups}
+              rowHeight={rowHeight}
+              columnRegion={columnRegion}
+              rowRegion="center"
+              offsetLeft={columnRegion === 'start' ? 0 : getFrozenColumnsWidth(table)}
+              offsetTop={0}
+            />
           )}
         </div>
       </div>

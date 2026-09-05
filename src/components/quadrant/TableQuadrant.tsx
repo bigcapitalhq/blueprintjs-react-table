@@ -1,111 +1,139 @@
 import classNames from 'classnames';
-import type { MutableRefObject } from 'react';
+import type { CSSProperties, MutableRefObject, UIEvent, WheelEvent } from 'react';
 import {
   TABLE_QUADRANT,
+  TABLE_QUADRANT_LEFT,
   TABLE_QUADRANT_MAIN,
   TABLE_QUADRANT_SCROLL_CONTAINER,
+  TABLE_QUADRANT_TOP,
+  TABLE_QUADRANT_TOP_LEFT,
 } from '../common/classes.ts';
-import { TableSelectionContext } from '../common/table-selection-context.ts';
-import { useColumnReorder } from '../../hooks/use-column-reorder.ts';
+import type { BP_RowVirtualizer } from '../../hooks/use-row-virtualizer.ts';
 import type { CellFocusSelectionApi } from '../../hooks/use-cell-focus-selection.ts';
-import {
-  DEFAULT_OVERSCAN_ROW_COUNT,
-  useRowVirtualizer,
-  type BP_RowVirtualizer,
-  type RowVirtualizerOptions,
-} from '../../hooks/use-row-virtualizer.ts';
-import { TableReorderGuides } from '../layers/TableReorderGuides.tsx';
-import { TableResizeGuides } from '../layers/TableResizeGuides.tsx';
-import { TableColumnReorderContext } from '../head/table-column-reorder-context.ts';
-import { TableTopContainer } from './TableTopContainer.tsx';
-import { TableBottomContainer } from './TableBottomContainer.tsx';
 import type {
   BP_RowData,
   BP_TableInstance,
-  HTMLPropsRef,
-  TableLoading,
 } from '../../types.ts';
-import type { TableLayout } from '../common/dimensions.ts';
+import type { ColumnRegion, RowRegion } from '../common/pinning.ts';
+import { getFrozenColumnsWidth } from '../common/pinning.ts';
+import { TableTopContainer } from './TableTopContainer.tsx';
+import { TableBottomContainer } from './TableBottomContainer.tsx';
+import { TableResizeGuides } from '../layers/TableResizeGuides.tsx';
+import { TableReorderGuides } from '../layers/TableReorderGuides.tsx';
+import { QuadrantType } from './quadrant-type.ts';
 
-export type TableQuadrantProps<TData extends BP_RowData> = HTMLPropsRef<HTMLDivElement> &
-  TableLayout &
-  TableLoading &
-  Pick<
-    RowVirtualizerOptions<TData>,
-    'enableRowVirtualization' | 'overscanRowCount'
-  > & {
-    table: BP_TableInstance<TData>;
-    enableColumnReordering?: boolean;
-    enableSorting?: boolean;
-    selection: CellFocusSelectionApi;
-    scrollContainerRef: MutableRefObject<HTMLDivElement | null>;
-  };
+export type TableQuadrantProps<TData extends BP_RowData> = {
+  quadrantType: QuadrantType;
+  table: BP_TableInstance<TData>;
+  rowHeight: number;
+  rowHeaderWidth: number;
+  columnHeaderHeight: number;
+  enableSorting?: boolean;
+  areCellsLoading: boolean;
+  areColumnHeadersLoading: boolean;
+  areRowHeadersLoading: boolean;
+  selection: CellFocusSelectionApi;
+  rowVirtualizer?: BP_RowVirtualizer;
+  reorderingColumnId: string | null;
+  guideIndex: number | null;
+  onScroll?: (event: UIEvent<HTMLDivElement>) => void;
+  onWheel?: (event: WheelEvent<HTMLDivElement>) => void;
+  scrollContainerRef: MutableRefObject<HTMLDivElement | null>;
+  style?: CSSProperties;
+};
+
+function quadrantColumnRegion(quadrantType: QuadrantType): ColumnRegion {
+  return quadrantType === QuadrantType.LEFT || quadrantType === QuadrantType.TOP_LEFT
+    ? 'start'
+    : 'center';
+}
+
+function quadrantRowRegion(quadrantType: QuadrantType): RowRegion {
+  return quadrantType === QuadrantType.TOP || quadrantType === QuadrantType.TOP_LEFT
+    ? 'top'
+    : 'center';
+}
+
+function quadrantCssClass(quadrantType: QuadrantType) {
+  switch (quadrantType) {
+    case QuadrantType.MAIN:
+      return TABLE_QUADRANT_MAIN;
+    case QuadrantType.TOP:
+      return TABLE_QUADRANT_TOP;
+    case QuadrantType.LEFT:
+      return TABLE_QUADRANT_LEFT;
+    case QuadrantType.TOP_LEFT:
+      return TABLE_QUADRANT_TOP_LEFT;
+    default:
+      return undefined;
+  }
+}
 
 export function TableQuadrant<TData extends BP_RowData>({
+  quadrantType,
   table,
   rowHeight,
   rowHeaderWidth,
   columnHeaderHeight,
-  enableColumnReordering = false,
   enableSorting = false,
   areCellsLoading,
   areColumnHeadersLoading,
   areRowHeadersLoading,
   selection,
+  rowVirtualizer,
+  reorderingColumnId,
+  guideIndex,
+  onScroll,
+  onWheel,
   scrollContainerRef,
-  enableRowVirtualization,
-  overscanRowCount,
-  className,
-  ...restProps
+  style,
 }: TableQuadrantProps<TData>) {
-  const { contextValue, guideIndex, reorderingColumnId } = useColumnReorder(
-    table,
-    enableColumnReordering,
-  );
-
-  const rowVirtualizer: BP_RowVirtualizer | undefined = useRowVirtualizer({
-    table,
-    rowHeight,
-    columnHeaderHeight,
-    scrollContainerRef,
-    enableRowVirtualization: enableRowVirtualization ?? false,
-    overscanRowCount: overscanRowCount ?? DEFAULT_OVERSCAN_ROW_COUNT,
-  });
+  const columnRegion = quadrantColumnRegion(quadrantType);
+  const rowRegion = quadrantRowRegion(quadrantType);
+  const offsetLeft = columnRegion === 'start' ? 0 : getFrozenColumnsWidth(table);
 
   return (
-    <div {...restProps} className={classNames(TABLE_QUADRANT, TABLE_QUADRANT_MAIN, className)}>
+    <div className={classNames(TABLE_QUADRANT, quadrantCssClass(quadrantType))} style={style}>
       <div
         ref={scrollContainerRef}
         className={TABLE_QUADRANT_SCROLL_CONTAINER}
-        tabIndex={selection ? 0 : undefined}
-        onKeyDown={selection?.handleKeyDown}
+        tabIndex={quadrantType === QuadrantType.MAIN && selection ? 0 : undefined}
+        onScroll={onScroll}
+        onWheel={onWheel}
+        onKeyDown={quadrantType === QuadrantType.MAIN ? selection?.handleKeyDown : undefined}
       >
-        <TableColumnReorderContext.Provider value={contextValue}>
-          <TableSelectionContext.Provider value={selection}>
-            <TableTopContainer
-              table={table}
-              rowHeaderWidth={rowHeaderWidth}
-              columnHeaderHeight={columnHeaderHeight}
-              enableSorting={enableSorting}
-              areColumnHeadersLoading={areColumnHeadersLoading}
-            />
-            <TableBottomContainer
-              table={table}
-              rowHeight={rowHeight}
-              rowHeaderWidth={rowHeaderWidth}
-              areCellsLoading={areCellsLoading}
-              areRowHeadersLoading={areRowHeadersLoading}
-              rowVirtualizer={rowVirtualizer}
-            />
-            <TableResizeGuides table={table} />
-            <TableReorderGuides
-              table={table}
-              reorderingColumnId={reorderingColumnId}
-              guideIndex={guideIndex}
-              rowHeaderWidth={rowHeaderWidth}
-            />
-          </TableSelectionContext.Provider>
-        </TableColumnReorderContext.Provider>
+        <TableTopContainer
+          table={table}
+          columnRegion={columnRegion}
+          rowHeaderWidth={rowHeaderWidth}
+          columnHeaderHeight={columnHeaderHeight}
+          enableSorting={enableSorting}
+          areColumnHeadersLoading={areColumnHeadersLoading}
+        />
+        <TableBottomContainer
+          table={table}
+          rowRegion={rowRegion}
+          columnRegion={columnRegion}
+          rowHeight={rowHeight}
+          rowHeaderWidth={rowHeaderWidth}
+          areCellsLoading={areCellsLoading}
+          areRowHeadersLoading={areRowHeadersLoading}
+          rowVirtualizer={rowVirtualizer}
+        />
+        <TableResizeGuides
+          table={table}
+          columnRegion={columnRegion}
+          offsetLeft={offsetLeft}
+          rowHeaderWidth={rowHeaderWidth}
+        />
+        <TableReorderGuides
+          table={table}
+          reorderingColumnId={reorderingColumnId}
+          guideIndex={guideIndex}
+          columnRegion={columnRegion}
+          offsetLeft={offsetLeft}
+          rowHeaderWidth={rowHeaderWidth}
+        />
       </div>
     </div>
   );

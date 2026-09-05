@@ -12,7 +12,7 @@ import {
 } from '../common/region.ts';
 import { useCellFocusSelection } from '../../hooks/use-cell-focus-selection.ts';
 import type { RowVirtualizerOptions } from '../../hooks/use-row-virtualizer.ts';
-import { TableQuadrant } from '../quadrant/TableQuadrant.tsx';
+import { TableQuadrantStack } from '../quadrant/TableQuadrantStack.tsx';
 import type {
   BP_RowData,
   BP_TableInstance,
@@ -63,11 +63,15 @@ export function TableContainer<TData extends BP_RowData>({
   ...restProps
 }: TableContainerProps<TData>) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const gridRef = useRef<HTMLDivElement>(null);
 
   const selection = useCellFocusSelection({
     table,
     rowHeight,
     scrollContainerRef,
+    gridRef,
+    rowHeaderWidth,
+    columnHeaderHeight,
     enableFocusedCell,
     focusedCell,
     onFocusedCell,
@@ -82,7 +86,7 @@ export function TableContainer<TData extends BP_RowData>({
 
   return (
     <div {...restProps} className={classNames(TABLE_CONTAINER, selectionEnabledClass, className)}>
-      <TableQuadrant
+      <TableQuadrantStack
         table={table}
         rowHeight={rowHeight}
         rowHeaderWidth={rowHeaderWidth}
@@ -95,6 +99,7 @@ export function TableContainer<TData extends BP_RowData>({
         selection={selection}
         enableRowVirtualization={enableRowVirtualization}
         overscanRowCount={overscanRowCount}
+        gridRef={gridRef}
         scrollContainerRef={scrollContainerRef}
       />
     </div>

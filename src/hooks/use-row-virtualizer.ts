@@ -23,7 +23,7 @@ export function useRowVirtualizer<TData extends BP_RowData>({
   enableRowVirtualization,
   overscanRowCount,
 }: RowVirtualizerOptions<TData>): BP_RowVirtualizer | undefined {
-  const rowCount = table.getRowModel().rows.length;
+  const rowCount = table.getCenterRows().length;
 
   const virtualizer = useVirtualizer<HTMLDivElement, HTMLDivElement>({
     count: rowCount,

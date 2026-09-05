@@ -13,6 +13,12 @@ type Person = {
   name: string;
   age: number;
   role: string;
+  email: string;
+  department: string;
+  location: string;
+  salary: number;
+  joinedAt: string;
+  manager: string;
 };
 
 const helper = createColumnHelper<BP_TableFeatures, Person>();
@@ -24,11 +30,74 @@ const columns = helper.columns([
   helper.accessor('role', { header: 'Role' }),
 ]);
 
+const wideColumns = helper.columns([
+  helper.accessor('id', { header: 'ID' }),
+  helper.accessor('name', { header: 'Name' }),
+  helper.accessor('age', { header: 'Age' }),
+  helper.accessor('role', { header: 'Role' }),
+  helper.accessor('email', { header: 'Email' }),
+  helper.accessor('department', { header: 'Department' }),
+  helper.accessor('location', { header: 'Location' }),
+  helper.accessor('salary', { header: 'Salary' }),
+  helper.accessor('joinedAt', { header: 'Joined' }),
+  helper.accessor('manager', { header: 'Manager' }),
+]);
+
 const data: Person[] = [
-  { id: 1, name: 'Ada Lovelace', age: 36, role: 'Mathematician' },
-  { id: 2, name: 'Alan Turing', age: 41, role: 'Computer Scientist' },
-  { id: 3, name: 'Grace Hopper', age: 85, role: 'Admiral' },
+  {
+    id: 1,
+    name: 'Ada Lovelace',
+    age: 36,
+    role: 'Mathematician',
+    email: 'ada@example.com',
+    department: 'Engineering',
+    location: 'London',
+    salary: 120000,
+    joinedAt: '2018-03-15',
+    manager: 'Jordan Lee',
+  },
+  {
+    id: 2,
+    name: 'Alan Turing',
+    age: 41,
+    role: 'Computer Scientist',
+    email: 'alan@example.com',
+    department: 'Research',
+    location: 'Manchester',
+    salary: 110000,
+    joinedAt: '2016-07-01',
+    manager: 'Priya Sharma',
+  },
+  {
+    id: 3,
+    name: 'Grace Hopper',
+    age: 85,
+    role: 'Admiral',
+    email: 'grace@example.com',
+    department: 'Operations',
+    location: 'Arlington',
+    salary: 140000,
+    joinedAt: '2013-11-20',
+    manager: 'Chris Wong',
+  },
 ];
+
+const departments = ['Engineering', 'Design', 'Finance', 'Operations', 'People'];
+const locations = ['London', 'New York', 'Seattle', 'Berlin', 'Tokyo', 'Sydney'];
+const managers = ['Jordan Lee', 'Priya Sharma', 'Chris Wong', 'Ana Silva', 'Mohamed Ali'];
+
+const frozenData: Person[] = Array.from({ length: 60 }, (_, index) => ({
+  id: index + 1,
+  name: `Person ${index + 1}`,
+  age: 20 + (index % 50),
+  role: ['Engineer', 'Designer', 'Manager', 'Analyst'][index % 4],
+  email: `person${index + 1}@example.com`,
+  department: departments[index % departments.length],
+  location: locations[index % locations.length],
+  salary: 50_000 + index * 1_750,
+  joinedAt: `20${18 + (index % 8)}-0${1 + (index % 9)}-15`,
+  manager: managers[index % managers.length],
+}));
 
 const meta = {
   title: 'BP_Table/Basic',
@@ -153,6 +222,12 @@ const virtualizedData: Person[] = Array.from({ length: 10_000 }, (_, index) => (
   name: `Person ${index + 1}`,
   age: 20 + (index % 60),
   role: ['Engineer', 'Designer', 'Manager', 'Analyst'][index % 4],
+  email: `person${index + 1}@example.com`,
+  department: departments[index % departments.length],
+  location: locations[index % locations.length],
+  salary: 50_000 + (index % 500) * 100,
+  joinedAt: `20${18 + (index % 8)}-0${1 + (index % 9)}-15`,
+  manager: managers[index % managers.length],
 }));
 
 export const RowVirtualization: Story = {
@@ -171,6 +246,94 @@ export const RowVirtualization: Story = {
         <p className="bp-table-demo-hint">
           Renders only the visible rows (plus overscan) out of 10,000. Scrolling, focus, and
           selection still operate on the full data set.
+        </p>
+      </div>
+    ),
+  ],
+};
+
+export const FrozenColumns: Story = {
+  args: {
+    data: frozenData,
+    columns: wideColumns,
+    enableColumnReordering: true,
+    enableFocusedCell: true,
+    numFrozenColumns: 2,
+  },
+  decorators: [
+    (Story) => (
+      <div className="bp-table-demo-wrapper">
+        <Story />
+        <p className="bp-table-demo-hint">
+          The two leftmost columns (ID, Name) are frozen in place; the remaining eight columns
+          scroll horizontally beneath the pinned column header.
+        </p>
+      </div>
+    ),
+  ],
+};
+
+export const FrozenRows: Story = {
+  args: {
+    data: frozenData,
+    columns: wideColumns,
+    enableColumnReordering: true,
+    enableFocusedCell: true,
+    numFrozenRows: 3,
+  },
+  decorators: [
+    (Story) => (
+      <div className="bp-table-demo-wrapper">
+        <Story />
+        <p className="bp-table-demo-hint">
+          The three topmost rows are frozen in place; the remaining 57 rows scroll vertically
+          beneath the pinned column header.
+        </p>
+      </div>
+    ),
+  ],
+};
+
+export const FrozenColumnsAndRows: Story = {
+  args: {
+    data: frozenData,
+    columns: wideColumns,
+    enableColumnReordering: true,
+    enableFocusedCell: true,
+    numFrozenColumns: 2,
+    numFrozenRows: 3,
+  },
+  decorators: [
+    (Story) => (
+      <div className="bp-table-demo-wrapper">
+        <Story />
+        <p className="bp-table-demo-hint">
+          Both the two leftmost columns and three topmost rows are frozen, so the top-left corner
+          stays fixed while the rest of the table scrolls in both directions.
+        </p>
+      </div>
+    ),
+  ],
+};
+
+export const FrozenWithVirtualization: Story = {
+  args: {
+    data: virtualizedData,
+    columns: wideColumns,
+    enableColumnReordering: true,
+    enableFocusedCell: true,
+    enableRowVirtualization: true,
+    overscanRowCount: 10,
+    numFrozenColumns: 2,
+    numFrozenRows: 3,
+  },
+  decorators: [
+    (Story) => (
+      <div className="bp-table-demo-wrapper">
+        <Story />
+        <p className="bp-table-demo-hint">
+          Frozen rows and columns stay pinned while only the visible (non-frozen) rows are
+          virtualized out of 10,000.
         </p>
       </div>
     ),

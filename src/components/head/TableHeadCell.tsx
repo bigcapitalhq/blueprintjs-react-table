@@ -26,6 +26,8 @@ import type {
   BP_TableFeatures,
   BP_TableInstance,
 } from '../../types.ts';
+import type { ColumnRegion } from '../common/pinning.ts';
+import { columnToNaturalIndex } from '../common/pinning.ts';
 import { useTableColumnReorder } from './table-column-reorder-context.ts';
 import { useTableSelection } from '../common/table-selection-context.ts';
 import { TableColumnHeaderMenu } from './TableColumnHeaderMenu.tsx';
@@ -33,6 +35,7 @@ import { TableColumnHeaderMenu } from './TableColumnHeaderMenu.tsx';
 export type TableHeadCellProps<TData extends BP_RowData> = {
   table: BP_TableInstance<TData>;
   header: Header<BP_TableFeatures, TData, unknown>;
+  columnRegion: ColumnRegion;
   isLastInRow: boolean;
   enableSorting?: boolean;
   loading: boolean;
@@ -41,6 +44,7 @@ export type TableHeadCellProps<TData extends BP_RowData> = {
 export function TableHeadCell<TData extends BP_RowData>({
   table,
   header,
+  columnRegion,
   isLastInRow,
   enableSorting = false,
   loading,
@@ -58,12 +62,13 @@ export function TableHeadCell<TData extends BP_RowData>({
   const isReordering = reorder?.reorderingColumnId === header.column.id;
   const canSort = enableSorting && header.column.getCanSort();
   const [isSortMenuOpen, setIsSortMenuOpen] = useState(false);
+  const naturalIndex = columnToNaturalIndex(table, header.column);
 
   return (
     <div
       className={classNames(
         TABLE_HEADER,
-        columnCellIndexClass(header.index),
+        columnCellIndexClass(header.column.getIndex(columnRegion)),
         TABLE_COLUMN_HEADER_CELL,
         { [TABLE_LAST_IN_ROW]: isLastInRow },
         { [TABLE_HAS_REORDER_HANDLE]: isReorderable },
@@ -71,7 +76,7 @@ export function TableHeadCell<TData extends BP_RowData>({
         { [Classes.LOADING]: loading },
       )}
       style={{ flexBasis: size, minWidth: 0, width: size }}
-      onMouseDown={(event) => selection?.handleColumnHeaderMouseDown(header.index, event)}
+      onMouseDown={(event) => selection?.handleColumnHeaderMouseDown(naturalIndex, event)}
     >
       <div className={TABLE_COLUMN_NAME} title={name}>
         {isReorderable && (
