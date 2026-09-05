@@ -30,6 +30,25 @@ const data: Person[] = [
   { id: 3, name: 'Grace Hopper', age: 85, role: 'Admiral' },
 ];
 
+const groupedColumns = helper.columns([
+  helper.group({
+    id: 'identity',
+    header: 'Identity',
+    columns: helper.columns([
+      helper.accessor('id', { header: 'ID' }),
+      helper.accessor('name', { header: 'Name' }),
+    ]),
+  }),
+  helper.group({
+    id: 'profile',
+    header: 'Profile',
+    columns: helper.columns([
+      helper.accessor('age', { header: 'Age' }),
+      helper.accessor('role', { header: 'Role' }),
+    ]),
+  }),
+]);
+
 const meta = {
   title: 'BP_Table/Basic',
   component: BP_Table as ComponentType<BP_TableProps<Person>>,
@@ -49,6 +68,24 @@ export const Basic: Story = {
     (Story) => (
       <div className="bp-table-demo-wrapper">
         <Story />
+      </div>
+    ),
+  ],
+};
+
+export const ColumnGroups: Story = {
+  args: {
+    data,
+    columns: groupedColumns,
+  },
+  decorators: [
+    (Story) => (
+      <div className="bp-table-demo-wrapper">
+        <Story />
+        <p className="bp-table-demo-hint">
+          Nested columns render on a second header row. Each group header spans the width of its
+          child columns; resizing still operates on the leaf columns.
+        </p>
       </div>
     ),
   ],
