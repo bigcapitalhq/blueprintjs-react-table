@@ -45,8 +45,9 @@ export function TableStaticBody<TData extends BP_RowData>({
           onPointerCancel={selection?.handleBodyPointerCancel}
         >
           <div className={TABLE_BODY_CELLS}>
-            {rows.map((row, rowIndex) =>
-              row.getAllCells().map((cell, columnIndex) => (
+            {rows.map((row, rowIndex) => {
+              const visibleCells = row.getVisibleCells();
+              return visibleCells.map((cell, columnIndex) => (
                 <TableBodyCell
                   key={cell.id}
                   table={table}
@@ -56,11 +57,11 @@ export function TableStaticBody<TData extends BP_RowData>({
                   columnIndex={columnIndex}
                   rowHeight={rowHeight}
                   loading={areCellsLoading}
-                  isLastInRow={columnIndex === row.getAllCells().length - 1}
+                  isLastInRow={columnIndex === visibleCells.length - 1}
                   isLastInColumn={rowIndex === lastRowIndex}
                 />
-              )),
-            )}
+              ));
+            })}
           </div>
           {selection != null && selection.regionGroups.length > 0 && (
             <TableRegionLayer table={table} regionGroups={selection.regionGroups} rowHeight={rowHeight} />

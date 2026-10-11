@@ -2,6 +2,7 @@ import type {
   BP_RowData,
   BP_TableFeatures,
   BP_TableOptions,
+  BP_VisibilityState,
   HTMLPropsRef,
 } from '../types.ts';
 import {
@@ -85,6 +86,12 @@ export type BP_TableProps<TData extends BP_RowData> =
      * @default 5
      */
     overscanRowCount?: number;
+    /**
+     * Controlled column visibility, mapping column ids to booleans (`true` =
+     * visible, `false` = hidden). Convenience alias for
+     * `state.columnVisibility`; when both are provided, this prop wins.
+     */
+    columnVisibility?: BP_VisibilityState;
   };
 
 export function BP_Table<TData extends BP_RowData>({
@@ -104,9 +111,17 @@ export function BP_Table<TData extends BP_RowData>({
   selectionModes,
   enableRowVirtualization = false,
   overscanRowCount = DEFAULT_OVERSCAN_ROW_COUNT,
+  columnVisibility,
   ...tableOptions
 }: BP_TableProps<TData>) {
-  const table = useBPTableInstance<TData>({ ...tableOptions, enableSorting });
+  const table = useBPTableInstance<TData>({
+    ...tableOptions,
+    enableSorting,
+    state: {
+      ...tableOptions.state,
+      ...(columnVisibility !== undefined ? { columnVisibility } : {}),
+    },
+  });
 
   const areCellsLoading = hasLoadingOption(loadingOptions, TableLoadingOption.CELLS);
   const areColumnHeadersLoading = hasLoadingOption(
