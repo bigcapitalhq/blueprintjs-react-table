@@ -12,10 +12,12 @@ import type {
 
 export type TableResizeGuidesProps<TData extends BP_RowData> = {
   table: BP_TableInstance<TData>;
+  rowHeaderWidth: number;
 };
 
 export function TableResizeGuides<TData extends BP_RowData>({
   table,
+  rowHeaderWidth,
 }: TableResizeGuidesProps<TData>) {
   const columnResizing = table.state.columnResizing;
   const resizingColumnId = columnResizing?.isResizingColumn;
@@ -29,7 +31,8 @@ export function TableResizeGuides<TData extends BP_RowData>({
     return null;
   }
 
-  const offset = column.getStart() + column.getSize() + (columnResizing?.deltaOffset ?? 0);
+  const offset =
+    rowHeaderWidth + column.getStart() + column.getSize() + (columnResizing?.deltaOffset ?? 0);
 
   return (
     <div className={classNames(TABLE_RESIZE_GUIDES, TABLE_OVERLAY_LAYER)}>
