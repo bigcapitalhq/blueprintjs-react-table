@@ -21,6 +21,8 @@ export function TableHead<TData extends BP_RowData>({
   enableSorting = false,
   areColumnHeadersLoading,
 }: TableHeadProps<TData>) {
+  // TanStack builds header groups from visible leaf columns, so `headers` (and
+  // each header's `index`) already exclude hidden columns.
   const lastHeaderId = headerGroup.headers[headerGroup.headers.length - 1]?.id;
 
   return (

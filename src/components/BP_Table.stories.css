@@ -2,6 +2,13 @@
   height: 400px;
 }
 
+.bp-table-demo-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin-bottom: 8px;
+}
+
 .bp-table-demo-hint {
   font-size: 12px;
   margin-top: 8px;

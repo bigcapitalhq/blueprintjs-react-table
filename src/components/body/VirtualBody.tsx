@@ -51,8 +51,9 @@ export function VirtualBody<TData extends BP_RowData>({
           onPointerCancel={selection?.handleBodyPointerCancel}
         >
           <div className={TABLE_BODY_CELLS}>
-            {virtualRows.map((virtualRow) =>
-              rows[virtualRow.index].getAllCells().map((cell, columnIndex) => (
+            {virtualRows.map((virtualRow) => {
+              const visibleCells = rows[virtualRow.index].getVisibleCells();
+              return visibleCells.map((cell, columnIndex) => (
                 <TableBodyCell
                   key={cell.id}
                   table={table}
@@ -62,11 +63,11 @@ export function VirtualBody<TData extends BP_RowData>({
                   columnIndex={columnIndex}
                   rowHeight={rowHeight}
                   loading={areCellsLoading}
-                  isLastInRow={columnIndex === rows[virtualRow.index].getAllCells().length - 1}
+                  isLastInRow={columnIndex === visibleCells.length - 1}
                   isLastInColumn={virtualRow.index === lastRowIndex}
                 />
-              )),
-            )}
+              ));
+            })}
           </div>
           {selection != null && selection.regionGroups.length > 0 && (
             <TableRegionLayer table={table} regionGroups={selection.regionGroups} rowHeight={rowHeight} />

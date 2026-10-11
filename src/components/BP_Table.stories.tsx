@@ -4,8 +4,13 @@ import {
   createColumnHelper,
   type SortingState,
 } from '@tanstack/react-table';
+import { Checkbox } from '@blueprintjs/core';
 import { BP_Table, type BP_TableProps } from './BP_Table';
-import { TableLoadingOption, type BP_TableFeatures } from '../types.ts';
+import {
+  TableLoadingOption,
+  type BP_TableFeatures,
+  type BP_VisibilityState,
+} from '../types.ts';
 import './BP_Table.stories.css';
 
 type Person = {
@@ -212,4 +217,67 @@ export const RowVirtualization: Story = {
       </div>
     ),
   ],
+};
+
+export const ColumnVisibility: Story = {
+  args: {
+    data,
+    columns,
+  },
+  render: () => {
+    // Local column defs so the non-hideable ID column doesn't leak into the
+    // other stories.
+    const visibilityColumns = helper.columns([
+      helper.accessor('id', { header: 'ID', enableHiding: false }),
+      helper.accessor('name', { header: 'Name' }),
+      helper.accessor('age', { header: 'Age' }),
+      helper.accessor('role', { header: 'Role' }),
+    ]);
+    const hideableColumnIds = ['name', 'age', 'role'];
+
+    function ColumnVisibilityTable() {
+      const [columnVisibility, setColumnVisibility] = useState<BP_VisibilityState>({});
+
+      const isVisible = (columnId: string) => columnVisibility[columnId] ?? true;
+      const allVisible = hideableColumnIds.every(isVisible);
+
+      const toggleColumn = (columnId: string) => {
+        setColumnVisibility((prev) => ({ ...prev, [columnId]: !(prev[columnId] ?? true) }));
+      };
+
+      const toggleAll = () => {
+        setColumnVisibility(
+          allVisible
+            ? Object.fromEntries(hideableColumnIds.map((id) => [id, false] as const))
+            : {},
+        );
+      };
+
+      return (
+        <div className="bp-table-demo-wrapper">
+          <div className="bp-table-demo-toolbar">
+            <Checkbox label="Toggle all" checked={allVisible} onChange={toggleAll} />
+            <Checkbox label="ID" checked={isVisible('id')} disabled />
+            <Checkbox label="Name" checked={isVisible('name')} onChange={() => toggleColumn('name')} />
+            <Checkbox label="Age" checked={isVisible('age')} onChange={() => toggleColumn('age')} />
+            <Checkbox label="Role" checked={isVisible('role')} onChange={() => toggleColumn('role')} />
+          </div>
+          <BP_Table
+            data={data}
+            columns={visibilityColumns}
+            columnVisibility={columnVisibility}
+            onColumnVisibilityChange={setColumnVisibility}
+          />
+          <p className="bp-table-demo-hint">
+            Column visibility is fully controlled from outside the table: the checkboxes update the{' '}
+            <code>columnVisibility</code> prop via <code>onColumnVisibilityChange</code>. The ID
+            column defines <code>enableHiding: false</code>, so its checkbox is disabled and never
+            hidden.
+          </p>
+        </div>
+      );
+    }
+
+    return <ColumnVisibilityTable />;
+  },
 };

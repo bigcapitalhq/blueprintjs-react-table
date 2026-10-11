@@ -2,7 +2,14 @@ import {
   type HTMLProps,
   type MutableRefObject,
 } from 'react';
-import { RowData, TableFeatures, TableOptions, TableState, ReactTable } from '@tanstack/react-table';
+import {
+  ColumnVisibilityState,
+  RowData,
+  TableFeatures,
+  TableOptions,
+  TableState,
+  ReactTable,
+} from '@tanstack/react-table';
 
 export type LiteralUnion<T extends U, U = string> =
   | (Record<never, never> & U)
@@ -51,5 +58,7 @@ export type BP_TableOptions<TFeatures extends TableFeatures, TData extends RowDa
 };
 export type BP_TableFeatures = TableFeatures;
 export type BP_TableState = TableState<BP_TableFeatures>;
+/** Maps column ids to their visibility (`true` = visible, `false` = hidden). */
+export type BP_VisibilityState = ColumnVisibilityState;
 export type BP_TableInstance<TData extends BP_RowData = BP_RowData> =
   ReactTable<BP_TableFeatures, TData>;
