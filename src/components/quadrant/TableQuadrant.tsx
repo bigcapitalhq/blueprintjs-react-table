@@ -97,7 +97,7 @@ export function TableQuadrant<TData extends BP_RowData>({
               areRowHeadersLoading={areRowHeadersLoading}
               rowVirtualizer={rowVirtualizer}
             />
-            <TableResizeGuides table={table} />
+            <TableResizeGuides table={table} rowHeaderWidth={rowHeaderWidth} />
             <TableReorderGuides
               table={table}
               reorderingColumnId={reorderingColumnId}
