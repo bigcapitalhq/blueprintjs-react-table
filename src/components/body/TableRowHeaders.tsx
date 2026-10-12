@@ -1,8 +1,15 @@
 import classNames from 'classnames';
+import { Classes } from '@blueprintjs/core';
+import { LoadableContent } from '../common/LoadableContent.tsx';
 import {
+  TABLE_HEADER,
   TABLE_ROW_HEADERS,
   TABLE_ROW_HEADERS_CELLS_CONTAINER,
+  TABLE_ROW_NAME,
+  TABLE_ROW_NAME_TEXT,
+  rowCellIndexClass,
 } from '../common/classes.ts';
+import type { BP_GhostCells } from '../../hooks/use-ghost-cells.ts';
 import type { BP_RowVirtualizer } from '../../hooks/use-row-virtualizer.ts';
 import type { RowResizingApi } from '../../hooks/use-row-resizing.ts';
 import type {
@@ -18,6 +25,7 @@ export type TableRowHeadersProps<TData extends BP_RowData> = HTMLPropsRef<HTMLDi
   areRowHeadersLoading: boolean;
   rowVirtualizer?: BP_RowVirtualizer;
   rowResizing: RowResizingApi;
+  ghosts?: BP_GhostCells;
 };
 
 export function TableRowHeaders<TData extends BP_RowData>({
@@ -26,6 +34,7 @@ export function TableRowHeaders<TData extends BP_RowData>({
   areRowHeadersLoading,
   rowVirtualizer,
   rowResizing,
+  ghosts,
   className,
   ...restProps
 }: TableRowHeadersProps<TData>) {
@@ -79,6 +88,25 @@ export function TableRowHeaders<TData extends BP_RowData>({
               }
             />
           ))}
+          {ghosts != null &&
+            Array.from({ length: ghosts.rowCount }).map((_, ghostRowOffset) => {
+              const rowIndex = rows.length + ghostRowOffset;
+              return (
+                <div
+                  key={`ghost-row-header-${ghostRowOffset}`}
+                  className={classNames(TABLE_HEADER, rowCellIndexClass(rowIndex), {
+                    [Classes.LOADING]: areRowHeadersLoading,
+                  })}
+                  style={{ flexBasis: ghosts.rowHeight, height: ghosts.rowHeight, minHeight: 0 }}
+                >
+                  <div className={TABLE_ROW_NAME}>
+                    <div className={TABLE_ROW_NAME_TEXT}>
+                      <LoadableContent loading={areRowHeadersLoading} />
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
         </div>
       </div>
     </div>

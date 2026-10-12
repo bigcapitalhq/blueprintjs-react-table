@@ -18,6 +18,7 @@ import type { RowResizingApi } from '../../hooks/use-row-resizing.ts';
 import { TableReorderGuides } from '../layers/TableReorderGuides.tsx';
 import { TableResizeGuides } from '../layers/TableResizeGuides.tsx';
 import { TableColumnReorderContext } from '../head/table-column-reorder-context.ts';
+import type { BP_GhostCells } from '../../hooks/use-ghost-cells.ts';
 import { TableTopContainer } from './TableTopContainer.tsx';
 import { TableBottomContainer } from './TableBottomContainer.tsx';
 import type {
@@ -40,6 +41,7 @@ export type TableQuadrantProps<TData extends BP_RowData> = HTMLPropsRef<HTMLDivE
     enableSorting?: boolean;
     selection: CellFocusSelectionApi;
     rowResizing: RowResizingApi;
+    ghosts?: BP_GhostCells;
     scrollContainerRef: MutableRefObject<HTMLDivElement | null>;
   };
 
@@ -57,6 +59,7 @@ export function TableQuadrant<TData extends BP_RowData>({
   enableRowVirtualization,
   overscanRowCount,
   rowResizing,
+  ghosts,
   className,
   ...restProps
 }: TableQuadrantProps<TData>) {
@@ -90,6 +93,7 @@ export function TableQuadrant<TData extends BP_RowData>({
               columnHeaderHeight={columnHeaderHeight}
               enableSorting={enableSorting}
               areColumnHeadersLoading={areColumnHeadersLoading}
+              ghosts={ghosts}
             />
             <TableBottomContainer
               table={table}
@@ -98,6 +102,7 @@ export function TableQuadrant<TData extends BP_RowData>({
               areRowHeadersLoading={areRowHeadersLoading}
               rowVirtualizer={rowVirtualizer}
               rowResizing={rowResizing}
+              ghosts={ghosts}
             />
             <TableResizeGuides
               table={table}

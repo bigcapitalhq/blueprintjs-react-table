@@ -2,6 +2,7 @@ import classNames from 'classnames';
 import { TABLE_TOP_CONTAINER } from '../common/classes.ts';
 import { TableMenu } from '../head/TableMenu.tsx';
 import { TableColumnHeaders } from '../head/TableColumnHeaders.tsx';
+import type { BP_GhostCells } from '../../hooks/use-ghost-cells.ts';
 import type {
   BP_RowData,
   BP_TableInstance,
@@ -14,6 +15,7 @@ export type TableTopContainerProps<TData extends BP_RowData> = HTMLPropsRef<HTML
   columnHeaderHeight: number;
   enableSorting?: boolean;
   areColumnHeadersLoading: boolean;
+  ghosts?: BP_GhostCells;
 };
 
 export function TableTopContainer<TData extends BP_RowData>({
@@ -22,6 +24,7 @@ export function TableTopContainer<TData extends BP_RowData>({
   columnHeaderHeight,
   enableSorting = false,
   areColumnHeadersLoading,
+  ghosts,
   className,
   ...restProps
 }: TableTopContainerProps<TData>) {
@@ -32,6 +35,7 @@ export function TableTopContainer<TData extends BP_RowData>({
         table={table}
         enableSorting={enableSorting}
         areColumnHeadersLoading={areColumnHeadersLoading}
+        ghosts={ghosts}
       />
     </div>
   );

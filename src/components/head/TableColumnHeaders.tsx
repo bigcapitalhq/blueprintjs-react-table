@@ -1,5 +1,6 @@
 import classNames from 'classnames';
 import { TABLE_COLUMN_HEADERS } from '../common/classes.ts';
+import { getGhostedTableWidth, type BP_GhostCells } from '../../hooks/use-ghost-cells.ts';
 import type {
   BP_RowData,
   BP_TableInstance,
@@ -12,16 +13,18 @@ export type TableColumnHeadersProps<TData extends BP_RowData> = HTMLPropsRef<HTM
   table: BP_TableInstance<TData>;
   enableSorting?: boolean;
   areColumnHeadersLoading: boolean;
+  ghosts?: BP_GhostCells;
 };
 
 export function TableColumnHeaders<TData extends BP_RowData>({
   table,
   enableSorting = false,
   areColumnHeadersLoading,
+  ghosts,
   className,
   ...restProps
 }: TableColumnHeadersProps<TData>) {
-  const totalWidth = table.getTotalSize();
+  const totalWidth = getGhostedTableWidth(table.getTotalSize(), ghosts);
   const reorder = useTableColumnReorder();
 
   return (
@@ -38,6 +41,7 @@ export function TableColumnHeaders<TData extends BP_RowData>({
             headerGroup={headerGroup}
             enableSorting={enableSorting}
             areColumnHeadersLoading={areColumnHeadersLoading}
+            ghosts={ghosts}
           />
         ))}
       </div>

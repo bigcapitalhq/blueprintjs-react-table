@@ -2,6 +2,7 @@ import classNames from 'classnames';
 import { TABLE_BOTTOM_CONTAINER } from '../common/classes.ts';
 import { TableRowHeaders } from '../body/TableRowHeaders.tsx';
 import { TableBody } from '../body/TableBody.tsx';
+import type { BP_GhostCells } from '../../hooks/use-ghost-cells.ts';
 import type { BP_RowVirtualizer } from '../../hooks/use-row-virtualizer.ts';
 import type { RowResizingApi } from '../../hooks/use-row-resizing.ts';
 import type {
@@ -17,6 +18,7 @@ export type TableBottomContainerProps<TData extends BP_RowData> = HTMLPropsRef<H
   areRowHeadersLoading: boolean;
   rowVirtualizer?: BP_RowVirtualizer;
   rowResizing: RowResizingApi;
+  ghosts?: BP_GhostCells;
 };
 
 export function TableBottomContainer<TData extends BP_RowData>({
@@ -26,6 +28,7 @@ export function TableBottomContainer<TData extends BP_RowData>({
   areRowHeadersLoading,
   rowVirtualizer,
   rowResizing,
+  ghosts,
   className,
   ...restProps
 }: TableBottomContainerProps<TData>) {
@@ -41,12 +44,14 @@ export function TableBottomContainer<TData extends BP_RowData>({
         areRowHeadersLoading={areRowHeadersLoading}
         rowVirtualizer={rowVirtualizer}
         rowResizing={rowResizing}
+        ghosts={ghosts}
       />
       <TableBody
         table={table}
         areCellsLoading={areCellsLoading}
         rowVirtualizer={rowVirtualizer}
         rowResizing={rowResizing}
+        ghosts={ghosts}
       />
     </div>
   );

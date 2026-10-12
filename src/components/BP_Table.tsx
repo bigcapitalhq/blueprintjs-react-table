@@ -52,6 +52,16 @@ export type BP_TableProps<TData extends BP_RowData> =
      */
     enableFocusedCell?: boolean;
     /**
+     * If `true`, empty space in the table container will be filled with empty
+     * cells instead of a blank background. Ghost cells render in the body, the
+     * column headers, and the row headers whenever the content is smaller than
+     * the viewport, and scrolling is disabled on the axes they fill, mirroring
+     * Blueprint's `enableGhostCells`.
+     *
+     * @default false
+     */
+    enableGhostCells?: boolean;
+    /**
      * A controlled focused cell. When provided, focus state is fully owned by the
      * caller and updated via `onFocusedCell`.
      */
@@ -128,6 +138,7 @@ export function BP_Table<TData extends BP_RowData>({
   enableSorting = false,
   loadingOptions = [],
   enableFocusedCell = false,
+  enableGhostCells = false,
   focusedCell,
   onFocusedCell,
   onFocusedRegion,
@@ -173,6 +184,7 @@ export function BP_Table<TData extends BP_RowData>({
       areColumnHeadersLoading={areColumnHeadersLoading}
       areRowHeadersLoading={areRowHeadersLoading}
       enableFocusedCell={enableFocusedCell}
+      enableGhostCells={enableGhostCells}
       focusedCell={focusedCell}
       onFocusedCell={onFocusedCell}
       onFocusedRegion={onFocusedRegion}
