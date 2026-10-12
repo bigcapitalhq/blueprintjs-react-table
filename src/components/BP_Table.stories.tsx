@@ -281,3 +281,69 @@ export const ColumnVisibility: Story = {
     return <ColumnVisibilityTable />;
   },
 };
+
+export const RowResizing: Story = {
+  args: {
+    data,
+    columns,
+    enableRowResizing: true,
+    defaultRowHeights: [40, undefined, 60],
+  },
+  decorators: [
+    (Story) => (
+      <div className="bp-table-demo-wrapper">
+        <Story />
+        <p className="bp-table-demo-hint">
+          Drag the horizontal handle at the bottom of a row header to resize that row. Heights are
+          managed internally (uncontrolled) and clamped between 6 and 100px; rows without an
+          override keep the default height.
+        </p>
+      </div>
+    ),
+  ],
+};
+
+export const ControlledRowResizing: Story = {
+  args: {
+    data,
+    columns,
+  },
+  render: () => {
+    function ControlledRowResizingTable() {
+      const [rowHeights, setRowHeights] = useState<Array<number | undefined>>([]);
+
+      const handleRowHeightChanged = (index: number, height: number) => {
+        setRowHeights((prev) => {
+          const next = prev.slice();
+          next[index] = height;
+          return next;
+        });
+      };
+
+      const summary = rowHeights
+        .map((height, index) => (height != null ? `row ${index + 1}: ${height}px` : null))
+        .filter((entry): entry is string => entry != null)
+        .join(', ');
+
+      return (
+        <div className="bp-table-demo-wrapper">
+          <BP_Table
+            data={data}
+            columns={columns}
+            enableRowResizing={true}
+            rowHeights={rowHeights}
+            onRowHeightChanged={handleRowHeightChanged}
+          />
+          <p className="bp-table-demo-hint">
+            Row heights are fully controlled from outside the table: the{' '}
+            <code>onRowHeightChanged</code> listener updates the <code>rowHeights</code> prop on
+            every change during the drag.
+            {summary.length > 0 && <span> Current heights — {summary}.</span>}
+          </p>
+        </div>
+      );
+    }
+
+    return <ControlledRowResizingTable />;
+  },
+};

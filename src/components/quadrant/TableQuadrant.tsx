@@ -14,6 +14,7 @@ import {
   type BP_RowVirtualizer,
   type RowVirtualizerOptions,
 } from '../../hooks/use-row-virtualizer.ts';
+import type { RowResizingApi } from '../../hooks/use-row-resizing.ts';
 import { TableReorderGuides } from '../layers/TableReorderGuides.tsx';
 import { TableResizeGuides } from '../layers/TableResizeGuides.tsx';
 import { TableColumnReorderContext } from '../head/table-column-reorder-context.ts';
@@ -28,7 +29,7 @@ import type {
 import type { TableLayout } from '../common/dimensions.ts';
 
 export type TableQuadrantProps<TData extends BP_RowData> = HTMLPropsRef<HTMLDivElement> &
-  TableLayout &
+  Pick<TableLayout, 'rowHeaderWidth' | 'columnHeaderHeight'> &
   TableLoading &
   Pick<
     RowVirtualizerOptions<TData>,
@@ -38,12 +39,12 @@ export type TableQuadrantProps<TData extends BP_RowData> = HTMLPropsRef<HTMLDivE
     enableColumnReordering?: boolean;
     enableSorting?: boolean;
     selection: CellFocusSelectionApi;
+    rowResizing: RowResizingApi;
     scrollContainerRef: MutableRefObject<HTMLDivElement | null>;
   };
 
 export function TableQuadrant<TData extends BP_RowData>({
   table,
-  rowHeight,
   rowHeaderWidth,
   columnHeaderHeight,
   enableColumnReordering = false,
@@ -55,6 +56,7 @@ export function TableQuadrant<TData extends BP_RowData>({
   scrollContainerRef,
   enableRowVirtualization,
   overscanRowCount,
+  rowResizing,
   className,
   ...restProps
 }: TableQuadrantProps<TData>) {
@@ -65,8 +67,8 @@ export function TableQuadrant<TData extends BP_RowData>({
 
   const rowVirtualizer: BP_RowVirtualizer | undefined = useRowVirtualizer({
     table,
-    rowHeight,
     columnHeaderHeight,
+    getRowHeight: rowResizing.getRowHeight,
     scrollContainerRef,
     enableRowVirtualization: enableRowVirtualization ?? false,
     overscanRowCount: overscanRowCount ?? DEFAULT_OVERSCAN_ROW_COUNT,
@@ -91,13 +93,18 @@ export function TableQuadrant<TData extends BP_RowData>({
             />
             <TableBottomContainer
               table={table}
-              rowHeight={rowHeight}
               rowHeaderWidth={rowHeaderWidth}
               areCellsLoading={areCellsLoading}
               areRowHeadersLoading={areRowHeadersLoading}
               rowVirtualizer={rowVirtualizer}
+              rowResizing={rowResizing}
             />
-            <TableResizeGuides table={table} rowHeaderWidth={rowHeaderWidth} />
+            <TableResizeGuides
+              table={table}
+              resizingGuideTop={rowResizing.resizingGuideTop}
+              columnHeaderHeight={columnHeaderHeight}
+              rowHeaderWidth={rowHeaderWidth}
+            />
             <TableReorderGuides
               table={table}
               reorderingColumnId={reorderingColumnId}

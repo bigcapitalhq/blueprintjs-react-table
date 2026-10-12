@@ -4,6 +4,7 @@ import {
   TABLE_ROW_HEADERS_CELLS_CONTAINER,
 } from '../common/classes.ts';
 import type { BP_RowVirtualizer } from '../../hooks/use-row-virtualizer.ts';
+import type { RowResizingApi } from '../../hooks/use-row-resizing.ts';
 import type {
   BP_RowData,
   BP_TableInstance,
@@ -13,23 +14,23 @@ import { TableRowHeaderCell } from './TableRowHeaderCell.tsx';
 
 export type TableRowHeadersProps<TData extends BP_RowData> = HTMLPropsRef<HTMLDivElement> & {
   table: BP_TableInstance<TData>;
-  rowHeight: number;
   rowHeaderWidth: number;
   areRowHeadersLoading: boolean;
   rowVirtualizer?: BP_RowVirtualizer;
+  rowResizing: RowResizingApi;
 };
 
 export function TableRowHeaders<TData extends BP_RowData>({
   table,
-  rowHeight,
   rowHeaderWidth,
   areRowHeadersLoading,
   rowVirtualizer,
+  rowResizing,
   className,
   ...restProps
 }: TableRowHeadersProps<TData>) {
   const rows = table.getRowModel().rows;
-  const totalHeight = rows.length * rowHeight;
+  const totalHeight = rowResizing.totalHeight;
   const lastRowIndex = rows.length - 1;
 
   const virtualRows = rowVirtualizer?.getVirtualItems();
@@ -67,9 +68,15 @@ export function TableRowHeaders<TData extends BP_RowData>({
             <TableRowHeaderCell
               key={rows[index]?.id ?? index}
               rowIndex={index}
-              rowHeight={rowHeight}
+              rowHeight={rowResizing.getRowHeight(index)}
               loading={areRowHeadersLoading}
               isLastInColumn={index === lastRowIndex}
+              isResizing={rowResizing.resizingRowIndex === index}
+              onResizeStart={
+                rowResizing.enabled
+                  ? (event) => rowResizing.startRowResize(index, event)
+                  : undefined
+              }
             />
           ))}
         </div>

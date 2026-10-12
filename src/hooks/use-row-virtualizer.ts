@@ -1,5 +1,5 @@
 import { useVirtualizer, type Virtualizer } from '@tanstack/react-virtual';
-import type { MutableRefObject } from 'react';
+import { useLayoutEffect, type MutableRefObject } from 'react';
 import type { BP_RowData, BP_TableInstance } from '../types.ts';
 
 export const DEFAULT_OVERSCAN_ROW_COUNT = 5;
@@ -8,8 +8,9 @@ export type BP_RowVirtualizer = Virtualizer<HTMLDivElement, HTMLDivElement>;
 
 export type RowVirtualizerOptions<TData extends BP_RowData> = {
   table: BP_TableInstance<TData>;
-  rowHeight: number;
   columnHeaderHeight: number;
+  /** Resolved height of the row at the given index (used to estimate item sizes). */
+  getRowHeight: (index: number) => number;
   scrollContainerRef: MutableRefObject<HTMLDivElement | null>;
   enableRowVirtualization: boolean;
   overscanRowCount: number;
@@ -17,8 +18,8 @@ export type RowVirtualizerOptions<TData extends BP_RowData> = {
 
 export function useRowVirtualizer<TData extends BP_RowData>({
   table,
-  rowHeight,
   columnHeaderHeight,
+  getRowHeight,
   scrollContainerRef,
   enableRowVirtualization,
   overscanRowCount,
@@ -28,7 +29,7 @@ export function useRowVirtualizer<TData extends BP_RowData>({
   const virtualizer = useVirtualizer<HTMLDivElement, HTMLDivElement>({
     count: rowCount,
     getScrollElement: () => scrollContainerRef.current,
-    estimateSize: () => rowHeight,
+    estimateSize: (index) => getRowHeight(index),
     overscan: overscanRowCount,
     /**
      * The body sits below the column-header area inside the same shared
@@ -38,6 +39,14 @@ export function useRowVirtualizer<TData extends BP_RowData>({
     scrollMargin: columnHeaderHeight,
     enabled: enableRowVirtualization,
   });
+
+  // Changing `estimateSize` alone does not invalidate the virtualizer's
+  // memoized measurements, so item offsets would lag behind live row height
+  // changes (e.g. during a resize drag). Bump the measurement cache whenever
+  // the resolved heights change.
+  useLayoutEffect(() => {
+    virtualizer.measure();
+  }, [getRowHeight, virtualizer]);
 
   return enableRowVirtualization ? virtualizer : undefined;
 }

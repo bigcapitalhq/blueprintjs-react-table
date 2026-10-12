@@ -19,7 +19,9 @@ import type {
 export type TableRegionLayerProps<TData extends BP_RowData> = {
   table: BP_TableInstance<TData>;
   regionGroups: StyledRegionGroup[];
-  rowHeight: number;
+  getRowTop: (index: number) => number;
+  getRowHeight: (index: number) => number;
+  totalHeight: number;
 };
 
 function cumulativeColumnWidth(
@@ -34,10 +36,20 @@ function cumulativeColumnWidth(
   return width;
 }
 
+function cumulativeRowHeight(
+  getRowTop: (index: number) => number,
+  getRowHeight: (index: number) => number,
+  startIndex: number,
+  endIndex: number,
+): number {
+  return getRowTop(endIndex) + getRowHeight(endIndex) - getRowTop(startIndex);
+}
+
 function regionToStyle<TData extends BP_RowData>(
   table: BP_TableInstance<TData>,
   region: Region,
-  rowHeight: number,
+  getRowTop: (index: number) => number,
+  getRowHeight: (index: number) => number,
   totalWidth: number,
   totalHeight: number,
 ): CSSProperties {
@@ -51,9 +63,9 @@ function regionToStyle<TData extends BP_RowData>(
       const colStart = region.cols![0];
       const colEnd = region.cols![1];
       return {
-        height: (rowEnd - rowStart + 1) * rowHeight,
+        height: cumulativeRowHeight(getRowTop, getRowHeight, rowStart, rowEnd),
         left: columns[colStart]?.getStart() ?? 0,
-        top: rowStart * rowHeight,
+        top: getRowTop(rowStart),
         width: cumulativeColumnWidth(columns, colStart, colEnd),
       };
     }
@@ -71,9 +83,9 @@ function regionToStyle<TData extends BP_RowData>(
       const rowStart = region.rows![0];
       const rowEnd = region.rows![1];
       return {
-        height: (rowEnd - rowStart + 1) * rowHeight,
+        height: cumulativeRowHeight(getRowTop, getRowHeight, rowStart, rowEnd),
         left: 0,
-        top: rowStart * rowHeight,
+        top: getRowTop(rowStart),
         width: totalWidth,
       };
     }
@@ -85,10 +97,11 @@ function regionToStyle<TData extends BP_RowData>(
 export function TableRegionLayer<TData extends BP_RowData>({
   table,
   regionGroups,
-  rowHeight,
+  getRowTop,
+  getRowHeight,
+  totalHeight,
 }: TableRegionLayerProps<TData>) {
   const totalWidth = table.getTotalSize();
-  const totalHeight = table.getRowModel().rows.length * rowHeight;
 
   return (
     <div className={TABLE_OVERLAY_LAYER} aria-hidden>
@@ -97,7 +110,7 @@ export function TableRegionLayer<TData extends BP_RowData>({
           <div
             key={`${groupIndex}-${regionIndex}`}
             className={classNames(TABLE_OVERLAY, TABLE_REGION, group.className)}
-            style={regionToStyle(table, region, rowHeight, totalWidth, totalHeight)}
+            style={regionToStyle(table, region, getRowTop, getRowHeight, totalWidth, totalHeight)}
           />
         )),
       )}
