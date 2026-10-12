@@ -38,7 +38,29 @@ A Blueprint.js-styled data table for React, built on [TanStack Table v9](https:/
 ## Getting started
 
 ```bash
-# Install dependencies
+npm install blueprintjs-react-table
+```
+
+The table renders with Blueprint's visual language, so your app must already
+be styled with Blueprint and have React 18 installed:
+
+```bash
+npm install @blueprintjs/core @blueprintjs/icons react react-dom @tanstack/react-table @tanstack/react-virtual
+```
+
+Import the compiled table styles once, alongside Blueprint's own styles (if
+you don't already import them):
+
+```tsx
+import '@blueprintjs/core/lib/css/blueprint.css';
+import '@blueprintjs/icons/lib/css/blueprint-icons.css';
+import 'blueprintjs-react-table/styles.css';
+
+import { BP_Table } from 'blueprintjs-react-table';
+```
+
+```bash
+# For developing this library:
 npm install
 
 # Run the Storybook with live demos of every feature
@@ -55,9 +77,9 @@ Storybook is the primary way to explore the component: it contains stories for t
 `BP_Table` is a thin wrapper around TanStack Table: you define columns with `createColumnHelper` and pass `data` + `columns` in, exactly like any TanStack table.
 
 ```tsx
-import { BP_Table } from './components/BP_Table';
+import { BP_Table } from 'blueprintjs-react-table';
 import { createColumnHelper } from '@tanstack/react-table';
-import type { BP_TableFeatures } from './types';
+import type { BP_TableFeatures } from 'blueprintjs-react-table';
 
 type Person = {
   id: number;
@@ -160,11 +182,15 @@ const [sorting, setSorting] = useState<SortingState>([]);
 | Command | Description |
 | --- | --- |
 | `npm run dev` | Start the Vite dev server. |
-| `npm run build` | Type-check and build the production bundle. |
+| `npm run build` | Type-check and build the publishable library (`dist/`: ESM + CJS bundles, `styles.css`, and `.d.ts` types). |
 | `npm run preview` | Preview the production build locally. |
 | `npm run lint` | Run ESLint. |
 | `npm run storybook` | Start Storybook on port 6006. |
 | `npm run build-storybook` | Build a static Storybook site. |
+
+Publishing: `npm run build` runs automatically via `prepublishOnly` before
+`npm publish`. The `dist/` directory is the only thing shipped in the npm
+tarball.
 
 ## Tech stack & structure
 
@@ -188,4 +214,6 @@ src/
 └── types.ts                    # Shared types (TableLoadingOption, BP_VisibilityState, …)
 ```
 
-> **Note:** this repository is a private component library and demo (`private: true`, unpublished). `BP_Table` lives in `src/components/BP_Table.tsx` and is the single source of truth for the public API documented above.
+> `BP_Table` lives in `src/components/BP_Table.tsx` and is the single source of
+> truth for the public API documented above; `src/index.ts` re-exports it as
+> the package entry point.

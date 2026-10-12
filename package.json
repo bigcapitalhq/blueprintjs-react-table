@@ -1,28 +1,71 @@
 {
-  "name": "blueprintjs-react-table",
-  "private": true,
-  "version": "0.0.0",
+  "name": "@bigcapitalhq/blueprintjs-react-table",
+  "version": "0.1.0",
+  "description": "A Blueprint.js-styled data table for React, built on TanStack Table v9 with row virtualization, quadrant layout, and Blueprint-style focus & selection.",
   "type": "module",
+  "main": "./dist/blueprintjs-react-table.cjs",
+  "module": "./dist/blueprintjs-react-table.js",
+  "types": "./dist/types/index.d.ts",
+  "private": false,
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/blueprintjs-react-table.js",
+      "require": "./dist/blueprintjs-react-table.cjs"
+    },
+    "./styles.css": "./dist/styles.css",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "keywords": [
+    "react",
+    "table",
+    "blueprint",
+    "blueprintjs",
+    "tanstack-table",
+    "datagrid",
+    "virtualized",
+    "typescript"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bigcapitalhq/blueprintjs-react-table.git"
+  },
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "rm -rf dist && tsc -p tsconfig.build.json && vite build --config vite.lib.config.ts --emptyOutDir false && node scripts/fix-dts.mjs",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
+    "classnames": "^2.5.1"
+  },
+  "peerDependencies": {
     "@blueprintjs/core": "^6.18.0",
     "@blueprintjs/icons": "^6.13.0",
     "@tanstack/react-table": "^9.0.0",
     "@tanstack/react-virtual": "^3.14.9",
-    "classnames": "^2.5.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
+    "@blueprintjs/core": "^6.18.0",
+    "@blueprintjs/icons": "^6.13.0",
     "@storybook/addon-essentials": "^8.6.18",
     "@storybook/react-vite": "^8.6.18",
+    "@tanstack/react-table": "^9.0.0",
+    "@tanstack/react-virtual": "^3.14.9",
     "@types/react": "^18.2.55",
     "@types/react-dom": "^18.2.19",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
@@ -32,6 +75,8 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.5",
     "eslint-plugin-storybook": "^0.11.6",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "sass": "^1.102.0",
     "storybook": "^8.6.18",
     "typescript": "^5.2.2",
