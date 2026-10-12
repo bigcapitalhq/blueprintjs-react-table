@@ -1,10 +1,10 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { useState, type ComponentType } from 'react';
+import { useCallback, useMemo, useState, type ComponentType } from 'react';
 import {
   createColumnHelper,
   type SortingState,
 } from '@tanstack/react-table';
-import { Checkbox } from '@blueprintjs/core';
+import { Checkbox, InputGroup, Intent, Tag } from '@blueprintjs/core';
 import { BP_Table, type BP_TableProps } from './BP_Table';
 import {
   TableLoadingOption,
@@ -345,5 +345,122 @@ export const ControlledRowResizing: Story = {
     }
 
     return <ControlledRowResizingTable />;
+  },
+};
+
+type Employee = {
+  id: number;
+  name: string;
+  active: boolean;
+  role: 'Engineer' | 'Designer' | 'Manager' | 'Analyst';
+};
+
+const employeeHelper = createColumnHelper<BP_TableFeatures, Employee>();
+
+const employeeData: Employee[] = [
+  { id: 1, name: 'Ada Lovelace', active: true, role: 'Engineer' },
+  { id: 2, name: 'Alan Turing', active: false, role: 'Engineer' },
+  { id: 3, name: 'Grace Hopper', active: true, role: 'Manager' },
+  { id: 4, name: 'Margaret Hamilton', active: false, role: 'Designer' },
+  { id: 5, name: 'Katherine Johnson', active: true, role: 'Analyst' },
+];
+
+const roleIntent: Record<Employee['role'], Intent> = {
+  Engineer: Intent.PRIMARY,
+  Designer: Intent.SUCCESS,
+  Manager: Intent.WARNING,
+  Analyst: Intent.NONE,
+};
+
+export const EditableCells: Story = {
+  args: {
+    data,
+    columns,
+  },
+  render: () => {
+    function EditableCellsTable() {
+      const [employees, setEmployees] = useState<Employee[]>(employeeData);
+
+      const updateEmployee = useCallback((id: number, patch: Partial<Employee>) => {
+        setEmployees((prev) =>
+          prev.map((employee) => (employee.id === id ? { ...employee, ...patch } : employee)),
+        );
+      }, []);
+
+      // Local column defs so the cell editors can close over the story state.
+      const editableColumns = useMemo(
+        () =>
+          employeeHelper.columns([
+            employeeHelper.accessor('id', { header: 'ID', size: 60 }),
+            employeeHelper.accessor('name', {
+              header: 'Name',
+              size: 220,
+              meta: { bodyCellClassName: 'bp-table-demo-cell bp-table-demo-cell-input' },
+              cell: (info) => (
+                <div
+                  className="bp-table-demo-cell-content"
+                  onKeyDown={(event) => event.stopPropagation()}
+                  onPointerDown={(event) => event.stopPropagation()}
+                >
+                  <InputGroup
+                    size="small"
+                    fill
+                    value={info.getValue()}
+                    onChange={(event) =>
+                      updateEmployee(info.row.original.id, { name: event.target.value })
+                    }
+                  />
+                </div>
+              ),
+            }),
+            employeeHelper.accessor('active', {
+              header: 'Active',
+              size: 80,
+              meta: {
+                bodyCellClassName: 'bp-table-demo-cell',
+                headCellClassName: 'bp-table-demo-head-centered',
+              },
+              cell: (info) => (
+                <div
+                  className="bp-table-demo-cell-content"
+                  onKeyDown={(event) => event.stopPropagation()}
+                  onPointerDown={(event) => event.stopPropagation()}
+                >
+                  <Checkbox
+                    checked={info.getValue()}
+                    onChange={(event) =>
+                      updateEmployee(info.row.original.id, { active: event.target.checked })
+                    }
+                  />
+                </div>
+              ),
+            }),
+            employeeHelper.accessor('role', {
+              header: 'Role',
+              size: 140,
+              meta: { bodyCellClassName: 'bp-table-demo-cell' },
+              cell: (info) => <Tag intent={roleIntent[info.getValue()]}>{info.getValue()}</Tag>,
+            }),
+          ]),
+        [updateEmployee],
+      );
+
+      return (
+        <div className="bp-table-demo-wrapper">
+          <BP_Table data={employees} columns={editableColumns} rowHeight={30} />
+          <p className="bp-table-demo-hint">
+            Cell renderers are ordinary React components: a Blueprint <code>InputGroup</code>{' '}
+            for Name, a <code>Checkbox</code> for Active, and a <code>Tag</code> whose intent
+            follows the Role value. Rows live in the story state and every edit flows back
+            through <code>setEmployees</code>. Columns style their body and header cells through{' '}
+            <code>meta.bodyCellClassName</code> / <code>meta.headCellClassName</code>, and editors
+            stop key/pointer propagation so the table selection and keyboard handling do not
+            interfere with typing.
+          </p>
+        </div>
+      );
+    }
+
+    return <EditableCellsTable />;
   },
 };

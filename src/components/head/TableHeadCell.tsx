@@ -57,6 +57,7 @@ export function TableHeadCell<TData extends BP_RowData>({
   const isReorderable = reorder?.enableColumnReordering ?? false;
   const isReordering = reorder?.reorderingColumnId === header.column.id;
   const canSort = enableSorting && header.column.getCanSort();
+  const headCellClassName = header.column.columnDef.meta?.headCellClassName;
   const [isSortMenuOpen, setIsSortMenuOpen] = useState(false);
 
   return (
@@ -69,6 +70,7 @@ export function TableHeadCell<TData extends BP_RowData>({
         { [TABLE_HAS_REORDER_HANDLE]: isReorderable },
         { [TABLE_HEADER_ACTIVE]: isSortMenuOpen },
         { [Classes.LOADING]: loading },
+        headCellClassName,
       )}
       style={{ flexBasis: size, minWidth: 0, width: size }}
       onMouseDown={(event) => selection?.handleColumnHeaderMouseDown(header.index, event)}
