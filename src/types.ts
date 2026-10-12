@@ -9,7 +9,32 @@ import {
   TableOptions,
   TableState,
   ReactTable,
+  type CellData,
 } from '@tanstack/react-table';
+
+declare module '@tanstack/react-table' {
+  /**
+   * Extra metadata supported on column definitions, applied by `BP_Table` when
+   * rendering the table's cells.
+   */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- parameters must match TanStack's ColumnMeta signature for merging
+  interface ColumnMeta<in out TFeatures extends TableFeatures, in out TData extends RowData, TValue extends CellData = CellData> {
+    /**
+     * Additional class name(s) applied to this column's body cells, e.g.
+     * `meta: { bodyCellClassName: 'my-cell' }`. Useful for styling cell
+     * contents (centering editors, removing cell padding, and so on).
+     */
+    bodyCellClassName?: string;
+    /** Additional class name(s) applied to this column's header cells. */
+    headCellClassName?: string;
+    /**
+     * Additional class name(s) applied to this column's footer cells.
+     * Reserved for forward compatibility: the table does not render footers
+     * yet, so this option currently has no effect.
+     */
+    footerCellClassName?: string;
+  }
+}
 
 export type LiteralUnion<T extends U, U = string> =
   | (Record<never, never> & U)

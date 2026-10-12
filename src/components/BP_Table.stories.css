@@ -14,3 +14,52 @@
   margin-top: 8px;
   color: #5f6b7c;
 }
+
+/*
+ * Cell layout is declared per column through column metadata:
+ * `meta: { cellClassName: 'bp-table-demo-cell' }`. Compound selectors keep
+ * these overrides stable regardless of stylesheet order, and `user-select:
+ * text` re-enables text selection inside editors, which the table scroll
+ * container disables globally.
+ */
+.bp6-table-cell.bp-table-demo-cell {
+  align-items: center;
+  display: flex;
+  user-select: text;
+}
+
+/*
+ * Unwrap the library's inner content wrapper and the event-handling wrapper
+ * so editors lay out as direct flex items of the cell.
+ */
+.bp-table-demo-cell .bp6-table-truncated-text,
+.bp-table-demo-cell-content {
+  display: contents;
+}
+
+.bp-table-demo-cell .bp6-input-group {
+  width: 100%;
+}
+
+/* Blueprint controls add their own bottom margin; the cell handles spacing. */
+.bp-table-demo-cell .bp6-control {
+  margin-bottom: 0;
+}
+
+.bp-table-demo-cell input {
+  user-select: text;
+}
+
+.bp-table-demo-cell .bp6-tag {
+  max-width: 100%;
+}
+
+/* Text input cells sit flush against the cell edges. */
+.bp6-table-cell.bp-table-demo-cell-input {
+  padding: 0;
+}
+
+/* Demonstrated via `meta.headCellClassName` on the Active column. */
+.bp-table-demo-head-centered .bp6-table-column-name-text {
+  text-align: center;
+}

@@ -46,6 +46,7 @@ export function TableBodyCell<TData extends BP_RowData>({
 }: TableBodyCellProps<TData>) {
   const size = cell.column.getSize();
   const start = cell.column.getStart();
+  const bodyCellClassName = cell.column.columnDef.meta?.bodyCellClassName;
 
   return (
     <div
@@ -60,6 +61,7 @@ export function TableBodyCell<TData extends BP_RowData>({
           [TABLE_LAST_IN_COLUMN]: isLastInColumn,
           [Classes.LOADING]: loading,
         },
+        bodyCellClassName,
       )}
       style={{
         height: rowHeight,
