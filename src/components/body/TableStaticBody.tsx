@@ -5,6 +5,7 @@ import {
   TABLE_CELL_CLIENT,
   TABLE_QUADRANT_BODY_CONTAINER,
 } from '../common/classes.ts';
+import type { RowResizingApi } from '../../hooks/use-row-resizing.ts';
 import type {
   BP_RowData,
   BP_TableInstance,
@@ -16,21 +17,21 @@ import { useTableSelection } from '../common/table-selection-context.ts';
 
 export type TableStaticBodyProps<TData extends BP_RowData> = HTMLPropsRef<HTMLDivElement> & {
   table: BP_TableInstance<TData>;
-  rowHeight: number;
   areCellsLoading: boolean;
+  rowResizing: RowResizingApi;
 };
 
 export function TableStaticBody<TData extends BP_RowData>({
   table,
-  rowHeight,
   areCellsLoading,
+  rowResizing,
   className,
   ...restProps
 }: TableStaticBodyProps<TData>) {
   const selection = useTableSelection();
   const rows = table.getRowModel().rows;
   const totalWidth = table.getTotalSize();
-  const totalHeight = rows.length * rowHeight;
+  const totalHeight = rowResizing.totalHeight;
   const lastRowIndex = rows.length - 1;
 
   return (
@@ -53,9 +54,9 @@ export function TableStaticBody<TData extends BP_RowData>({
                   table={table}
                   cell={cell}
                   rowIndex={rowIndex}
-                  rowTop={rowIndex * rowHeight}
+                  rowTop={rowResizing.getRowTop(rowIndex)}
                   columnIndex={columnIndex}
-                  rowHeight={rowHeight}
+                  rowHeight={rowResizing.getRowHeight(rowIndex)}
                   loading={areCellsLoading}
                   isLastInRow={columnIndex === visibleCells.length - 1}
                   isLastInColumn={rowIndex === lastRowIndex}
@@ -64,7 +65,13 @@ export function TableStaticBody<TData extends BP_RowData>({
             })}
           </div>
           {selection != null && selection.regionGroups.length > 0 && (
-            <TableRegionLayer table={table} regionGroups={selection.regionGroups} rowHeight={rowHeight} />
+            <TableRegionLayer
+              table={table}
+              regionGroups={selection.regionGroups}
+              getRowTop={rowResizing.getRowTop}
+              getRowHeight={rowResizing.getRowHeight}
+              totalHeight={rowResizing.totalHeight}
+            />
           )}
         </div>
       </div>

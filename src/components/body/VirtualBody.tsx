@@ -6,6 +6,7 @@ import {
   TABLE_QUADRANT_BODY_CONTAINER,
 } from '../common/classes.ts';
 import type { BP_RowVirtualizer } from '../../hooks/use-row-virtualizer.ts';
+import type { RowResizingApi } from '../../hooks/use-row-resizing.ts';
 import type {
   BP_RowData,
   BP_TableInstance,
@@ -17,27 +18,26 @@ import { useTableSelection } from '../common/table-selection-context.ts';
 
 export type VirtualBodyProps<TData extends BP_RowData> = HTMLPropsRef<HTMLDivElement> & {
   table: BP_TableInstance<TData>;
-  rowHeight: number;
   areCellsLoading: boolean;
   rowVirtualizer: BP_RowVirtualizer;
+  rowResizing: RowResizingApi;
 };
 
 export function VirtualBody<TData extends BP_RowData>({
   table,
-  rowHeight,
   areCellsLoading,
   rowVirtualizer,
+  rowResizing,
   className,
   ...restProps
 }: VirtualBodyProps<TData>) {
   const selection = useTableSelection();
   const rows = table.getRowModel().rows;
   const totalWidth = table.getTotalSize();
-  const totalHeight = rows.length * rowHeight;
+  const totalHeight = rowResizing.totalHeight;
   const lastRowIndex = rows.length - 1;
 
   const virtualRows = rowVirtualizer.getVirtualItems();
-  const scrollMargin = rowVirtualizer.options.scrollMargin ?? 0;
 
   return (
     <div {...restProps} className={classNames(TABLE_QUADRANT_BODY_CONTAINER, className)}>
@@ -59,9 +59,9 @@ export function VirtualBody<TData extends BP_RowData>({
                   table={table}
                   cell={cell}
                   rowIndex={virtualRow.index}
-                  rowTop={virtualRow.start - scrollMargin}
+                  rowTop={rowResizing.getRowTop(virtualRow.index)}
                   columnIndex={columnIndex}
-                  rowHeight={rowHeight}
+                  rowHeight={rowResizing.getRowHeight(virtualRow.index)}
                   loading={areCellsLoading}
                   isLastInRow={columnIndex === visibleCells.length - 1}
                   isLastInColumn={virtualRow.index === lastRowIndex}
@@ -70,7 +70,13 @@ export function VirtualBody<TData extends BP_RowData>({
             })}
           </div>
           {selection != null && selection.regionGroups.length > 0 && (
-            <TableRegionLayer table={table} regionGroups={selection.regionGroups} rowHeight={rowHeight} />
+            <TableRegionLayer
+              table={table}
+              regionGroups={selection.regionGroups}
+              getRowTop={rowResizing.getRowTop}
+              getRowHeight={rowResizing.getRowHeight}
+              totalHeight={rowResizing.totalHeight}
+            />
           )}
         </div>
       </div>

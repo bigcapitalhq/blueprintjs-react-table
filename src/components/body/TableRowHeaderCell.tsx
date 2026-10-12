@@ -3,6 +3,7 @@ import { Classes } from '@blueprintjs/core';
 import { LoadableContent } from '../common/LoadableContent.tsx';
 import { useTableSelection } from '../common/table-selection-context.ts';
 import {
+  TABLE_DRAGGING,
   TABLE_HEADER,
   TABLE_LAST_IN_COLUMN,
   TABLE_RESIZE_HANDLE,
@@ -12,6 +13,7 @@ import {
   TABLE_ROW_NAME_TEXT,
   rowCellIndexClass,
 } from '../common/classes.ts';
+import type { RowResizeStartEvent } from '../../hooks/use-row-resizing.ts';
 import type { HTMLPropsRef } from '../../types.ts';
 
 export type TableRowHeaderCellProps = HTMLPropsRef<HTMLDivElement> & {
@@ -19,6 +21,10 @@ export type TableRowHeaderCellProps = HTMLPropsRef<HTMLDivElement> & {
   rowHeight: number;
   loading: boolean;
   isLastInColumn: boolean;
+  /** Whether this row is currently being resized. */
+  isResizing?: boolean;
+  /** Handler for the horizontal resize handle; when undefined, the handle is hidden. */
+  onResizeStart?: (event: RowResizeStartEvent) => void;
 };
 
 export function TableRowHeaderCell({
@@ -26,6 +32,8 @@ export function TableRowHeaderCell({
   rowHeight,
   loading,
   isLastInColumn,
+  isResizing = false,
+  onResizeStart,
   className,
   ...restProps
 }: TableRowHeaderCellProps) {
@@ -47,9 +55,17 @@ export function TableRowHeaderCell({
           </LoadableContent>
         </div>
       </div>
-      <div className={classNames(TABLE_RESIZE_HANDLE_TARGET, TABLE_RESIZE_HORIZONTAL)}>
-        <div className={TABLE_RESIZE_HANDLE} />
-      </div>
+      {!loading && onResizeStart != null && (
+        <div
+          className={classNames(TABLE_RESIZE_HANDLE_TARGET, TABLE_RESIZE_HORIZONTAL, {
+            [TABLE_DRAGGING]: isResizing,
+          })}
+          onMouseDown={onResizeStart}
+          onTouchStart={onResizeStart}
+        >
+          <div className={classNames(TABLE_RESIZE_HANDLE, { [TABLE_DRAGGING]: isResizing })} />
+        </div>
+      )}
     </div>
   );
 }

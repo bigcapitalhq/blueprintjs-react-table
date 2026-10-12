@@ -74,7 +74,7 @@ export type BP_TableProps<TData extends BP_RowData> =
     /**
      * If `true`, only the rows currently visible in the scroll container (plus
      * an overscan buffer) are rendered, allowing the table to scale to very
-     * large data sets. Requires a fixed `rowHeight`.
+     * large data sets.
      *
      * @default false
      */
@@ -92,6 +92,31 @@ export type BP_TableProps<TData extends BP_RowData> =
      * `state.columnVisibility`; when both are provided, this prop wins.
      */
     columnVisibility?: BP_VisibilityState;
+    /**
+     * If `true`, rows can be resized by dragging the horizontal handle at the
+     * bottom of each row header.
+     *
+     * @default false
+     */
+    enableRowResizing?: boolean;
+    /**
+     * Controlled per-row heights, indexed by row index. When provided, row
+     * heights are fully owned by the caller and updated via
+     * `onRowHeightChanged`. Entries of `undefined` fall back to `rowHeight`.
+     */
+    rowHeights?: Array<number | undefined>;
+    /** Initial per-row heights for the uncontrolled mode. */
+    defaultRowHeights?: Array<number | undefined>;
+    /**
+     * Listener invoked whenever a row's height changes. Fires continuously
+     * during a resize drag (and once more when it ends), in both the
+     * controlled and uncontrolled modes.
+     */
+    onRowHeightChanged?: (index: number, height: number) => void;
+    /** Minimum height a row can be resized to. @default 6 */
+    minRowHeight?: number;
+    /** Maximum height a row can be resized to. @default 100 */
+    maxRowHeight?: number;
   };
 
 export function BP_Table<TData extends BP_RowData>({
@@ -112,6 +137,12 @@ export function BP_Table<TData extends BP_RowData>({
   enableRowVirtualization = false,
   overscanRowCount = DEFAULT_OVERSCAN_ROW_COUNT,
   columnVisibility,
+  enableRowResizing = false,
+  rowHeights,
+  defaultRowHeights,
+  onRowHeightChanged,
+  minRowHeight,
+  maxRowHeight,
   ...tableOptions
 }: BP_TableProps<TData>) {
   const table = useBPTableInstance<TData>({
@@ -150,6 +181,12 @@ export function BP_Table<TData extends BP_RowData>({
       selectionModes={selectionModes}
       enableRowVirtualization={enableRowVirtualization}
       overscanRowCount={overscanRowCount}
+      enableRowResizing={enableRowResizing}
+      rowHeights={rowHeights}
+      defaultRowHeights={defaultRowHeights}
+      onRowHeightChanged={onRowHeightChanged}
+      minRowHeight={minRowHeight}
+      maxRowHeight={maxRowHeight}
       {...htmlProps}
     />
   );

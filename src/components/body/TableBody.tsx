@@ -1,4 +1,5 @@
 import type { BP_RowVirtualizer } from '../../hooks/use-row-virtualizer.ts';
+import type { RowResizingApi } from '../../hooks/use-row-resizing.ts';
 import type {
   BP_RowData,
   BP_TableInstance,
@@ -9,22 +10,39 @@ import { TableStaticBody } from './TableStaticBody.tsx';
 
 export type TableBodyProps<TData extends BP_RowData> = HTMLPropsRef<HTMLDivElement> & {
   table: BP_TableInstance<TData>;
-  rowHeight: number;
   areCellsLoading: boolean;
   rowVirtualizer?: BP_RowVirtualizer;
+  rowResizing: RowResizingApi;
 };
 
 export function TableBody<TData extends BP_RowData>({
   table,
-  rowHeight,
   areCellsLoading,
   rowVirtualizer,
+  rowResizing,
   className,
   ...restProps
 }: TableBodyProps<TData>) {
   if (rowVirtualizer != null) {
-    return <VirtualBody table={table} rowHeight={rowHeight} areCellsLoading={areCellsLoading} rowVirtualizer={rowVirtualizer} className={className} {...restProps} />;
+    return (
+      <VirtualBody
+        table={table}
+        areCellsLoading={areCellsLoading}
+        rowVirtualizer={rowVirtualizer}
+        rowResizing={rowResizing}
+        className={className}
+        {...restProps}
+      />
+    );
   }
 
-  return <TableStaticBody table={table} rowHeight={rowHeight} areCellsLoading={areCellsLoading} className={className} {...restProps} />;
+  return (
+    <TableStaticBody
+      table={table}
+      areCellsLoading={areCellsLoading}
+      rowResizing={rowResizing}
+      className={className}
+      {...restProps}
+    />
+  );
 }
