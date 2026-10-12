@@ -5,6 +5,7 @@ import {
   TABLE_CELL_CLIENT,
   TABLE_QUADRANT_BODY_CONTAINER,
 } from '../common/classes.ts';
+import type { BP_GhostCells } from '../../hooks/use-ghost-cells.ts';
 import type { RowResizingApi } from '../../hooks/use-row-resizing.ts';
 import type {
   BP_RowData,
@@ -12,6 +13,7 @@ import type {
   HTMLPropsRef,
 } from '../../types.ts';
 import { TableBodyCell } from './TableBodyCell.tsx';
+import { TableGhostCells } from './TableGhostCells.tsx';
 import { TableRegionLayer } from '../layers/TableRegionLayer.tsx';
 import { useTableSelection } from '../common/table-selection-context.ts';
 
@@ -19,12 +21,14 @@ export type TableStaticBodyProps<TData extends BP_RowData> = HTMLPropsRef<HTMLDi
   table: BP_TableInstance<TData>;
   areCellsLoading: boolean;
   rowResizing: RowResizingApi;
+  ghosts?: BP_GhostCells;
 };
 
 export function TableStaticBody<TData extends BP_RowData>({
   table,
   areCellsLoading,
   rowResizing,
+  ghosts,
   className,
   ...restProps
 }: TableStaticBodyProps<TData>) {
@@ -63,6 +67,15 @@ export function TableStaticBody<TData extends BP_RowData>({
                 />
               ));
             })}
+            {ghosts != null && (
+              <TableGhostCells
+                table={table}
+                ghosts={ghosts}
+                loading={areCellsLoading}
+                rowIndices={rows.map((_, rowIndex) => rowIndex)}
+                rowResizing={rowResizing}
+              />
+            )}
           </div>
           {selection != null && selection.regionGroups.length > 0 && (
             <TableRegionLayer

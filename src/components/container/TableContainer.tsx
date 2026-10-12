@@ -2,6 +2,8 @@ import classNames from 'classnames';
 import { useRef } from 'react';
 import {
   TABLE_CONTAINER,
+  TABLE_NO_HORIZONTAL_SCROLL,
+  TABLE_NO_VERTICAL_SCROLL,
   TABLE_SELECTION_ENABLED,
 } from '../common/classes.ts';
 import {
@@ -11,6 +13,7 @@ import {
   type Region,
 } from '../common/region.ts';
 import { useCellFocusSelection } from '../../hooks/use-cell-focus-selection.ts';
+import { useGhostCells } from '../../hooks/use-ghost-cells.ts';
 import type { RowVirtualizerOptions } from '../../hooks/use-row-virtualizer.ts';
 import { useRowResizing, type RowResizingApi } from '../../hooks/use-row-resizing.ts';
 import { TableQuadrant } from '../quadrant/TableQuadrant.tsx';
@@ -33,6 +36,7 @@ export type TableContainerProps<TData extends BP_RowData> = HTMLPropsRef<HTMLDiv
     enableColumnReordering?: boolean;
     enableSorting?: boolean;
     enableFocusedCell?: boolean;
+    enableGhostCells?: boolean;
     focusedCell?: FocusedCellCoordinates;
     onFocusedCell?: (cell: FocusedCellCoordinates) => void;
     onFocusedRegion?: (region: FocusedRegion) => void;
@@ -58,6 +62,7 @@ export function TableContainer<TData extends BP_RowData>({
   areColumnHeadersLoading,
   areRowHeadersLoading,
   enableFocusedCell = false,
+  enableGhostCells = false,
   focusedCell,
   onFocusedCell,
   onFocusedRegion,
@@ -102,11 +107,27 @@ export function TableContainer<TData extends BP_RowData>({
     selectionModes,
   });
 
+  const ghosts = useGhostCells({
+    enableGhostCells,
+    rowHeight,
+    rowHeaderWidth,
+    columnHeaderHeight,
+    totalWidth: table.getTotalSize(),
+    totalHeight: rowResizing.totalHeight,
+    scrollContainerRef,
+  });
+
   const selectionEnabledClass =
     selection.isSelectionModeEnabled(RegionCardinality.CELLS) ? TABLE_SELECTION_ENABLED : undefined;
 
   return (
-    <div {...restProps} className={classNames(TABLE_CONTAINER, selectionEnabledClass, className)}>
+    <div
+      {...restProps}
+      className={classNames(TABLE_CONTAINER, selectionEnabledClass, {
+        [TABLE_NO_HORIZONTAL_SCROLL]: ghosts != null && ghosts.columnCount > 0,
+        [TABLE_NO_VERTICAL_SCROLL]: ghosts != null && ghosts.rowCount > 0,
+      }, className)}
+    >
       <TableQuadrant
         table={table}
         rowHeaderWidth={rowHeaderWidth}
@@ -120,6 +141,7 @@ export function TableContainer<TData extends BP_RowData>({
         enableRowVirtualization={enableRowVirtualization}
         overscanRowCount={overscanRowCount}
         rowResizing={rowResizing}
+        ghosts={ghosts}
         scrollContainerRef={scrollContainerRef}
       />
     </div>

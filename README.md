@@ -11,6 +11,7 @@ A Blueprint.js-styled data table for React, built on [TanStack Table v9](https:/
 - **Quadrant layout** — frozen column headers, row headers, and a scrollable body, rendered with Blueprint table styles.
 - **Blueprint.js v6 skin** — cells, headers, selection overlays, and resize/reorder guides all use Blueprint colors and classes, so the table fits naturally into existing Blueprint apps.
 - **Grouped column headers** — nested column definitions render on additional header rows; each group spans its child columns.
+- **Ghost cells** — when the content is smaller than the viewport, leftover space is filled with empty cells (body, column headers, and row headers) instead of a blank background, and scrolling is disabled on the filled axes (`enableGhostCells`).
 
 ### Interactivity
 
@@ -47,7 +48,7 @@ npm run storybook
 npm run dev
 ```
 
-Storybook is the primary way to explore the component: it contains stories for the basic table, column groups, loading states, focus & selection, sorting (controlled and uncontrolled), virtualization with 10,000 rows, column visibility, row resizing (controlled and uncontrolled), and editable cells.
+Storybook is the primary way to explore the component: it contains stories for the basic table, column groups, loading states, ghost cells, focus & selection, sorting (controlled and uncontrolled), virtualization with 10,000 rows, column visibility, row resizing (controlled and uncontrolled), and editable cells.
 
 ## Basic usage
 
@@ -123,6 +124,7 @@ const [sorting, setSorting] = useState<SortingState>([]);
 | `enableColumnReordering` | `boolean` | `false` | Drag column headers to reorder columns. |
 | `enableSorting` | `boolean` | `false` | Chevron sort menu on sortable headers; also enables TanStack sorting. |
 | `enableFocusedCell` | `boolean` | `false` | Focused cell with keyboard navigation and selection. |
+| `enableGhostCells` | `boolean` | `false` | Fill leftover viewport space with empty cells (body, column headers, row headers) when the content doesn't overflow; scrolling is disabled on filled axes. |
 | `focusedCell` / `onFocusedCell` | `FocusedCellCoordinates` / callback | — | Controlled focused cell. |
 | `onFocusedRegion` | `(region) => void` | — | Fires when the focused region changes. |
 | `selectedRegions` / `onSelection` | `Region[]` / callback | — | Controlled region selection. |
@@ -143,6 +145,7 @@ const [sorting, setSorting] = useState<SortingState>([]);
 | `Basic` | Minimal table with column reordering. |
 | `ColumnGroups` | Nested column definitions on a second header row. |
 | `Loading` | Skeleton placeholders in cells, column headers, and row headers. |
+| `GhostCells` | Empty ghost cells fill leftover space when the table is smaller than its viewport. |
 | `FocusSelection` | Click/drag selection, row/column/corner-header selection, arrow-key focus, Shift+arrows, Cmd/Ctrl+A. |
 | `Sorting` | Header chevron menu with Sort Asc / Sort Desc / Clear Sort. |
 | `ControlledSorting` | Sorting state owned by the caller via `state` / `onSortingChange`. |

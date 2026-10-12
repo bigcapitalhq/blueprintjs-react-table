@@ -1,3 +1,4 @@
+import type { BP_GhostCells } from '../../hooks/use-ghost-cells.ts';
 import type { BP_RowVirtualizer } from '../../hooks/use-row-virtualizer.ts';
 import type { RowResizingApi } from '../../hooks/use-row-resizing.ts';
 import type {
@@ -13,6 +14,7 @@ export type TableBodyProps<TData extends BP_RowData> = HTMLPropsRef<HTMLDivEleme
   areCellsLoading: boolean;
   rowVirtualizer?: BP_RowVirtualizer;
   rowResizing: RowResizingApi;
+  ghosts?: BP_GhostCells;
 };
 
 export function TableBody<TData extends BP_RowData>({
@@ -20,6 +22,7 @@ export function TableBody<TData extends BP_RowData>({
   areCellsLoading,
   rowVirtualizer,
   rowResizing,
+  ghosts,
   className,
   ...restProps
 }: TableBodyProps<TData>) {
@@ -30,6 +33,7 @@ export function TableBody<TData extends BP_RowData>({
         areCellsLoading={areCellsLoading}
         rowVirtualizer={rowVirtualizer}
         rowResizing={rowResizing}
+        ghosts={ghosts}
         className={className}
         {...restProps}
       />
@@ -41,6 +45,7 @@ export function TableBody<TData extends BP_RowData>({
       table={table}
       areCellsLoading={areCellsLoading}
       rowResizing={rowResizing}
+      ghosts={ghosts}
       className={className}
       {...restProps}
     />

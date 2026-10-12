@@ -116,6 +116,35 @@ export const Loading: Story = {
   ],
 };
 
+export const GhostCells: Story = {
+  args: {
+    data,
+    columns,
+    enableGhostCells: true,
+  },
+  render: () => {
+    // Narrow columns guarantee the table is smaller than the viewport, so the
+    // ghost cells fill a clearly visible amount of space.
+    const ghostColumns = helper.columns([
+      helper.accessor('id', { header: 'ID', size: 100 }),
+      helper.accessor('name', { header: 'Name', size: 180 }),
+      helper.accessor('age', { header: 'Age', size: 80 }),
+    ]);
+
+    return (
+      <div className="bp-table-demo-wrapper">
+        <BP_Table data={data} columns={ghostColumns} enableGhostCells={true} />
+        <p className="bp-table-demo-hint">
+          With <code>enableGhostCells</code>, leftover viewport space is filled with empty ghost
+          cells in the body, column headers, and row headers instead of a blank background.
+          Scrolling is disabled on the axes the ghosts fill. Resize the window, the columns, or
+          the rows to watch the ghosts appear and disappear.
+        </p>
+      </div>
+    );
+  },
+};
+
 export const FocusSelection: Story = {
   args: {
     data,
