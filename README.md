@@ -21,6 +21,7 @@ A Blueprint.js-styled data table for React, built on [TanStack Table v9](https:/
 - **Sorting** — hover a column header and use the chevron menu for *Sort Asc* / *Sort Desc* / *Clear Sort* (`enableSorting`); controlled or uncontrolled via `state.sorting` / `onSortingChange`.
 - **Focused cell & keyboard navigation** — click a cell to focus it; arrow keys move focus, Shift+arrows extend the selection, and Cmd/Ctrl+A selects everything (`enableFocusedCell`).
 - **Region selection** — select cells by dragging, or full rows / columns / the whole table from the headers and corner menu; controlled or uncontrolled (`selectedRegions` / `onSelection`, `selectionModes`).
+- **Body context menu** — right-click a cell to open a custom Blueprint `Menu` (`bodyContextMenuRenderer`). A right-click outside the current selection selects the clicked cell first, and the renderer receives the selection (or the clicked cell) as a `BP_MenuContext` that also exposes the TanStack row and cell under the cursor.
 - **Row resizing** — drag the horizontal handle at the bottom of a row header (`enableRowResizing`); controlled or uncontrolled, with configurable min/max heights.
 - **Column visibility** — hide/show columns via the controlled `columnVisibility` prop or TanStack's standard state/`enableHiding` options.
 
@@ -154,6 +155,34 @@ const [sorting, setSorting] = useState<SortingState>([]);
 />;
 ```
 
+Right-click context menus are customized with a renderer that receives the
+Blueprint-style `BP_MenuContext` (the equivalent of Blueprint's `MenuContext`)
+and returns the menu to show:
+
+```tsx
+import { Menu, MenuItem } from '@blueprintjs/core';
+
+<BP_Table
+  data={data}
+  columns={columns}
+  bodyContextMenuRenderer={(context) => (
+    <Menu>
+      <MenuItem icon="trash" text={`Delete ${context.getTargetRow()?.original.name ?? 'row'}`} />
+      <MenuItem icon="clipboard" text={`Copy ${context.getUniqueCells().length} cells`} />
+    </Menu>
+  )}
+/>;
+```
+
+`getTarget()` / `getTargetRow()` / `getTargetCell()` report the right-clicked
+cell, and `getRegions()` / `getSelectedRegions()` report the user-intended
+regions: the current selection when the right-click landed inside it, otherwise
+just the clicked cell. A right-click outside the current selection moves the
+selection (and the focused cell, when `enableFocusedCell` is enabled) to the
+clicked cell before the menu opens. Right-clicks that don't land on a body cell
+(ghost cells, empty space) fall back to the browser's native context menu.
+Pass `enableBodyContextMenu={false}` to disable the custom menu.
+
 ## Core props
 
 | Prop | Type | Default | Description |
@@ -166,6 +195,8 @@ const [sorting, setSorting] = useState<SortingState>([]);
 | `enableSorting` | `boolean` | `false` | Chevron sort menu on sortable headers; also enables TanStack sorting. |
 | `enableFocusedCell` | `boolean` | `false` | Focused cell with keyboard navigation and selection. |
 | `enableGhostCells` | `boolean` | `false` | Fill leftover viewport space with empty cells (body, column headers, row headers) when the content doesn't overflow; scrolling is disabled on filled axes. |
+| `bodyContextMenuRenderer` | `(context: BP_MenuContext<TData>) => ReactElement \| null \| undefined` | — | Render a custom context menu when right-clicking a body cell. |
+| `enableBodyContextMenu` | `boolean` | `true` when a renderer is set | Whether the body context menu is enabled. |
 | `focusedCell` / `onFocusedCell` | `FocusedCellCoordinates` / callback | — | Controlled focused cell. |
 | `onFocusedRegion` | `(region) => void` | — | Fires when the focused region changes. |
 | `selectedRegions` / `onSelection` | `Region[]` / callback | — | Controlled region selection. |
@@ -190,6 +221,7 @@ const [sorting, setSorting] = useState<SortingState>([]);
 | `Loading` | Skeleton placeholders in cells, column headers, and row headers. |
 | `GhostCells` | Empty ghost cells fill leftover space when the table is smaller than its viewport. |
 | `FocusSelection` | Click/drag selection, row/column/corner-header selection, arrow-key focus, Shift+arrows, Cmd/Ctrl+A. |
+| `BodyContextMenu` | Right-click a cell for a custom Blueprint menu acting on the clicked cell or the current selection. |
 | `Sorting` | Header chevron menu with Sort Asc / Sort Desc / Clear Sort. |
 | `ControlledSorting` | Sorting state owned by the caller via `state` / `onSortingChange`. |
 | `RowVirtualization` | 10,000 rows with only visible rows rendered. |

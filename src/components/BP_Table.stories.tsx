@@ -4,8 +4,9 @@ import {
   createColumnHelper,
   type SortingState,
 } from '@tanstack/react-table';
-import { Checkbox, InputGroup, Intent, Tag } from '@blueprintjs/core';
+import { Checkbox, InputGroup, Intent, Menu, MenuItem, Tag } from '@blueprintjs/core';
 import { BP_Table, type BP_TableProps } from './BP_Table';
+import type { BP_MenuContext } from './common/menu-context.ts';
 import {
   TableLoadingOption,
   type BP_TableFeatures,
@@ -164,6 +165,63 @@ export const FocusSelection: Story = {
       </div>
     ),
   ],
+};
+
+export const BodyContextMenu: Story = {
+  args: {
+    data,
+    columns,
+  },
+  render: () => {
+    const [people, setPeople] = useState(data);
+    const [status, setStatus] = useState(
+      'Right-click a cell to open the context menu.',
+    );
+
+    const renderBodyContextMenu = useCallback(
+      (context: BP_MenuContext<Person>) => {
+        const row = context.getTargetRow();
+        const cellCount = context.getUniqueCells().length;
+        return (
+          <Menu>
+            <MenuItem
+              icon="clipboard"
+              text={cellCount === 1 ? 'Copy cell' : `Copy ${cellCount} cells`}
+              onClick={() => setStatus(`Copied ${cellCount} cell${cellCount === 1 ? '' : 's'}.`)}
+            />
+            {row != null && (
+              <MenuItem
+                icon="trash"
+                intent={Intent.DANGER}
+                text={`Remove ${row.original.name}`}
+                onClick={() => {
+                  setPeople((current) => current.filter((person) => person.id !== row.original.id));
+                  setStatus(`Removed ${row.original.name}.`);
+                }}
+              />
+            )}
+          </Menu>
+        );
+      },
+      [],
+    );
+
+    return (
+      <div className="bp-table-demo-wrapper">
+        <BP_Table
+          data={people}
+          columns={columns}
+          enableFocusedCell={true}
+          bodyContextMenuRenderer={renderBodyContextMenu}
+        />
+        <p className="bp-table-demo-hint">
+          {status} Drag or Shift-click to select a range first: a right-click inside the selection
+          acts on the whole selection; a right-click outside it moves the selection to the clicked
+          cell. Right-clicking a ghost cell or empty space falls back to the browser menu.
+        </p>
+      </div>
+    );
+  },
 };
 
 export const Sorting: Story = {

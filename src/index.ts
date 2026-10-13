@@ -15,5 +15,10 @@ import './styles/table/table.scss';
 export { BP_Table } from './components/BP_Table.tsx';
 export type { BP_TableProps } from './components/BP_Table.tsx';
 
+export type {
+  BP_BodyContextMenuRenderer,
+  BP_MenuContext,
+} from './components/common/menu-context.ts';
+
 export * from './types.ts';
 export * from './components/common/region.ts';

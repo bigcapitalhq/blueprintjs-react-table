@@ -23,6 +23,7 @@ import {
   DEFAULT_ROW_HEADER_WIDTH,
   DEFAULT_ROW_HEIGHT,
 } from './common/dimensions.ts';
+import type { BP_BodyContextMenuRenderer } from './common/menu-context.ts';
 import { TableContainer } from './container/TableContainer.tsx';
 
 export type BP_TableProps<TData extends BP_RowData> =
@@ -62,6 +63,25 @@ export type BP_TableProps<TData extends BP_RowData> =
      * @default false
      */
     enableGhostCells?: boolean;
+    /**
+     * An optional renderer for a custom context menu on the table body,
+     * mirroring Blueprint's `bodyContextMenuRenderer`. Right-clicking a cell
+     * opens the menu, and the renderer is supplied with a `BP_MenuContext`
+     * describing the region(s) of interest: the current selection when the
+     * click lands inside it, or the right-clicked cell otherwise. The context
+     * also exposes the right-clicked TanStack row and cell.
+     *
+     * Right-clicking a cell outside the current selection moves the selection
+     * (and the focused cell, when `enableFocusedCell` is enabled) to that cell
+     * before the menu opens.
+     */
+    bodyContextMenuRenderer?: BP_BodyContextMenuRenderer<TData>;
+    /**
+     * Whether the body context menu is enabled.
+     *
+     * @default true if bodyContextMenuRenderer is defined
+     */
+    enableBodyContextMenu?: boolean;
     /**
      * A controlled focused cell. When provided, focus state is fully owned by the
      * caller and updated via `onFocusedCell`.
@@ -158,6 +178,8 @@ export function BP_Table<TData extends BP_RowData>({
   loadingOptions = [],
   enableFocusedCell = false,
   enableGhostCells = false,
+  bodyContextMenuRenderer,
+  enableBodyContextMenu,
   focusedCell,
   onFocusedCell,
   onFocusedRegion,
@@ -208,6 +230,8 @@ export function BP_Table<TData extends BP_RowData>({
       areRowHeadersLoading={areRowHeadersLoading}
       enableFocusedCell={enableFocusedCell}
       enableGhostCells={enableGhostCells}
+      bodyContextMenuRenderer={bodyContextMenuRenderer}
+      enableBodyContextMenu={enableBodyContextMenu}
       focusedCell={focusedCell}
       onFocusedCell={onFocusedCell}
       onFocusedRegion={onFocusedRegion}
