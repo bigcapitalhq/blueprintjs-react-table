@@ -9,6 +9,7 @@ A Blueprint.js-styled data table for React, built on [TanStack Table v9](https:/
 ### Layout & styling
 
 - **Quadrant layout** — frozen column headers, row headers, and a scrollable body, rendered with Blueprint table styles.
+- **Frozen columns & rows** — freeze the leftmost columns (`numFrozenColumns`) and topmost rows (`numFrozenRows`) in place while the rest of the body scrolls, mirroring Blueprint's frozen areas. The column headers and row headers are always frozen, and frozen areas stay correct across column reordering, column visibility, and sorting.
 - **Blueprint.js v6 skin** — cells, headers, selection overlays, and resize/reorder guides all use Blueprint colors and classes, so the table fits naturally into existing Blueprint apps.
 - **Grouped column headers** — nested column definitions render on additional header rows; each group spans its child columns.
 - **Ghost cells** — when the content is smaller than the viewport, leftover space is filled with empty cells (body, column headers, and row headers) instead of a blank background, and scrolling is disabled on the filled axes (`enableGhostCells`).
@@ -121,6 +122,24 @@ Enable Blueprint-style interactions with a few flags:
 />
 ```
 
+Freeze the leading columns and rows (the column and row headers are always frozen):
+
+```tsx
+<BP_Table
+  data={data}
+  columns={columns}
+  numFrozenColumns={2}
+  numFrozenRows={1}
+  enableRowVirtualization
+/>
+```
+
+`numFrozenColumns` and `numFrozenRows` are derived from the table's current state: the frozen
+columns are the first N visible columns of the current column order (hiding a column shifts the
+frozen set, and dropping a column inside the frozen area freezes it), and the frozen rows are the
+first N rows of the current row model (so they follow sorting). Power users can also drive the
+regions directly through TanStack's `columnPinning` / `rowPinning` state and `column.pin()`.
+
 State can be controlled from outside the table through the standard TanStack props:
 
 ```tsx
@@ -152,6 +171,8 @@ const [sorting, setSorting] = useState<SortingState>([]);
 | `selectedRegions` / `onSelection` | `Region[]` / callback | — | Controlled region selection. |
 | `selectionModes` | `RegionCardinality[]` | all | Restricts which selection types are allowed (cells, rows, columns, table). |
 | `enableRowVirtualization` | `boolean` | `false` | Render only visible rows (plus overscan) — scales to very large data sets. |
+| `numFrozenColumns` | `number` | `0` | Freeze the leftmost N columns in place while the rest scroll; derived from the current column order and visibility. |
+| `numFrozenRows` | `number` | `0` | Freeze the topmost N rows in place while the rest scroll; derived from the current row model (so it follows sorting). |
 | `overscanRowCount` | `number` | `5` | Rows rendered above/below the viewport when virtualizing. |
 | `columnVisibility` | `BP_VisibilityState` | — | Controlled column visibility (`true` = visible). Convenience alias for `state.columnVisibility`. |
 | `enableRowResizing` | `boolean` | `false` | Drag the handle on a row header to resize that row. |
@@ -176,6 +197,9 @@ const [sorting, setSorting] = useState<SortingState>([]);
 | `RowResizing` | Uncontrolled row resizing with `defaultRowHeights`. |
 | `ControlledRowResizing` | Row heights owned by the caller via `rowHeights` / `onRowHeightChanged`. |
 | `EditableCells` | Custom cell renderers (Blueprint `InputGroup`, `Checkbox`, `Tag`) with `meta.bodyCellClassName` styling. |
+| `FrozenColumnsAndRows` | Frozen columns and rows with focus, selection, resizing, and cross-boundary reordering. |
+| `FrozenColumnsVirtualized` | 10,000 rows with frozen columns/rows and row virtualization. |
+| `FrozenColumnsWithGhostCells` | Ghost cells filling the leftover space around frozen rows/columns. |
 
 ## Scripts
 

@@ -12,7 +12,13 @@ import type {
   BP_RowData,
   BP_TableInstance,
 } from '../types.ts';
-import { getCellFromPoint } from '../components/common/cellCoordinates.ts';
+import { getCellFromClientPoint } from '../components/common/cellCoordinates.ts';
+import {
+  getFrozenColumnCount,
+  getFrozenColumnsWidth,
+  getFrozenRowCount,
+  getFrozenRowsHeight,
+} from '../components/common/pinning.ts';
 import {
   Direction,
   FocusMode,
@@ -34,6 +40,10 @@ export type CellFocusSelectionOptions<TData extends BP_RowData> = {
   /** Resolved height of the row at the given index. */
   getRowHeight: (index: number) => number;
   scrollContainerRef: MutableRefObject<HTMLDivElement | null>;
+  /** Width of the frozen row-header column. */
+  rowHeaderWidth: number;
+  /** Effective height of the column-header area. */
+  columnHeaderHeight: number;
 
   enableFocusedCell?: boolean;
   focusedCell?: FocusedCellCoordinates | undefined;
@@ -84,6 +94,8 @@ export function useCellFocusSelection<TData extends BP_RowData>({
   getRowTop,
   getRowHeight,
   scrollContainerRef,
+  rowHeaderWidth,
+  columnHeaderHeight,
   enableFocusedCell = false,
   focusedCell,
   onFocusedCell,
@@ -170,25 +182,45 @@ export function useCellFocusSelection<TData extends BP_RowData>({
       if (column == null) {
         return;
       }
-      const left = column.getStart();
-      const right = left + column.getSize();
-      const top = getRowTop(region.row);
-      const bottom = top + getRowHeight(region.row);
-      const viewportWidth = el.clientWidth;
-      const viewportHeight = el.clientHeight;
+      const frozenColumnCount = getFrozenColumnCount(table);
+      const frozenColumnsWidth = getFrozenColumnsWidth(table);
+      const frozenRowCount = getFrozenRowCount(table);
+      const frozenRowsHeight = getFrozenRowsHeight(table, getRowHeight);
+
+      // The cell's position in the content coordinate space (frozen columns
+      // and rows first, scrollable region after them; `column.getStart()` and
+      // the row tops are absolute grid offsets).
+      const columnLeft = column.getStart();
+      const columnRight = columnLeft + column.getSize();
+      const rowTop = getRowTop(region.row);
+      const rowBottom = rowTop + getRowHeight(region.row);
+
+      // The visible cell area excludes the row-header column, the
+      // column-header area, and the frozen rows/columns: those never scroll and
+      // always cover their part of the viewport.
+      const viewportWidth = el.clientWidth - rowHeaderWidth - frozenColumnsWidth;
+      const viewportHeight = el.clientHeight - columnHeaderHeight - frozenRowsHeight;
 
       let nextScrollLeft = el.scrollLeft;
       let nextScrollTop = el.scrollTop;
 
-      if (left < nextScrollLeft) {
-        nextScrollLeft = left;
-      } else if (right > nextScrollLeft + viewportWidth) {
-        nextScrollLeft = right - viewportWidth;
+      if (region.col >= frozenColumnCount) {
+        const left = columnLeft - frozenColumnsWidth;
+        const right = columnRight - frozenColumnsWidth;
+        if (left < nextScrollLeft) {
+          nextScrollLeft = Math.max(0, left);
+        } else if (right > nextScrollLeft + viewportWidth) {
+          nextScrollLeft = right - viewportWidth;
+        }
       }
-      if (top < nextScrollTop) {
-        nextScrollTop = top;
-      } else if (bottom > nextScrollTop + viewportHeight) {
-        nextScrollTop = bottom - viewportHeight;
+      if (region.row >= frozenRowCount) {
+        const top = rowTop - frozenRowsHeight;
+        const bottom = rowBottom - frozenRowsHeight;
+        if (top < nextScrollTop) {
+          nextScrollTop = Math.max(0, top);
+        } else if (bottom > nextScrollTop + viewportHeight) {
+          nextScrollTop = bottom - viewportHeight;
+        }
       }
 
       if (nextScrollLeft !== el.scrollLeft) {
@@ -198,7 +230,14 @@ export function useCellFocusSelection<TData extends BP_RowData>({
         el.scrollTop = nextScrollTop;
       }
     },
-    [getRowHeight, getRowTop, scrollContainerRef, table],
+    [
+      columnHeaderHeight,
+      getRowHeight,
+      getRowTop,
+      rowHeaderWidth,
+      scrollContainerRef,
+      table,
+    ],
   );
 
   const moveFocus = useCallback(
@@ -291,16 +330,19 @@ export function useCellFocusSelection<TData extends BP_RowData>({
     [isFocusEnabled, moveFocus, resizeSelection, selectAll],
   );
 
+  const getCellFromEvent = useCallback(
+    (clientX: number, clientY: number) =>
+      getCellFromClientPoint(
+        { table, scrollContainerRef, rowHeaderWidth, columnHeaderHeight, getRowTop, getRowHeight },
+        clientX,
+        clientY,
+      ),
+    [columnHeaderHeight, getRowHeight, getRowTop, rowHeaderWidth, scrollContainerRef, table],
+  );
+
   const handleBodyPointerDown = useCallback(
     (event: ReactPointerEvent<HTMLDivElement>) => {
-      const rect = event.currentTarget.getBoundingClientRect();
-      const cell = getCellFromPoint(
-        table,
-        event.clientX - rect.left,
-        event.clientY - rect.top,
-        getRowTop,
-        getRowHeight,
-      );
+      const cell = getCellFromEvent(event.clientX, event.clientY);
       if (cell == null) {
         return;
       }
@@ -321,7 +363,7 @@ export function useCellFocusSelection<TData extends BP_RowData>({
       }
       focusContainer();
     },
-    [focusedRegion, focusContainer, getRowHeight, getRowTop, handleFocus, handleSelection, selectedRegions, table],
+    [focusedRegion, focusContainer, getCellFromEvent, handleFocus, handleSelection, selectedRegions],
   );
 
   const handleBodyPointerMove = useCallback(
@@ -330,14 +372,7 @@ export function useCellFocusSelection<TData extends BP_RowData>({
       if (drag == null) {
         return;
       }
-      const rect = event.currentTarget.getBoundingClientRect();
-      const cell = getCellFromPoint(
-        table,
-        event.clientX - rect.left,
-        event.clientY - rect.top,
-        getRowTop,
-        getRowHeight,
-      );
+      const cell = getCellFromEvent(event.clientX, event.clientY);
       if (cell == null) {
         return;
       }
@@ -348,7 +383,7 @@ export function useCellFocusSelection<TData extends BP_RowData>({
       drag.dragging = true;
       handleSelection([Regions.cell(drag.anchor.row, drag.anchor.col, cell.row, cell.col)]);
     },
-    [handleSelection, getRowHeight, getRowTop, table],
+    [getCellFromEvent, handleSelection],
   );
 
   const handleBodyPointerUp = useCallback(() => {

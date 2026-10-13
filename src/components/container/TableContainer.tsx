@@ -13,10 +13,11 @@ import {
   type Region,
 } from '../common/region.ts';
 import { useCellFocusSelection } from '../../hooks/use-cell-focus-selection.ts';
+import { useColumnHeaderHeight } from '../../hooks/use-column-header-height.ts';
 import { useGhostCells } from '../../hooks/use-ghost-cells.ts';
 import type { RowVirtualizerOptions } from '../../hooks/use-row-virtualizer.ts';
 import { useRowResizing, type RowResizingApi } from '../../hooks/use-row-resizing.ts';
-import { TableQuadrant } from '../quadrant/TableQuadrant.tsx';
+import { TableQuadrantStack } from '../quadrant/TableQuadrantStack.tsx';
 import type {
   BP_RowData,
   BP_TableInstance,
@@ -82,6 +83,14 @@ export function TableContainer<TData extends BP_RowData>({
 }: TableContainerProps<TData>) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
+  // Column headers may render multiple rows (grouped columns) or grow with
+  // custom content, so the effective height is measured and shared by the
+  // quadrant layout, focus/selection, and ghost cells.
+  const { ref: columnHeaderMeasureRef, height: resolvedColumnHeaderHeight } = useColumnHeaderHeight({
+    minHeight: columnHeaderHeight,
+    headerRowCount: table.getHeaderGroups().length,
+  });
+
   const rowResizing: RowResizingApi = useRowResizing({
     rowHeight,
     rowCount: table.getRowModel().rows.length,
@@ -98,6 +107,8 @@ export function TableContainer<TData extends BP_RowData>({
     getRowTop: rowResizing.getRowTop,
     getRowHeight: rowResizing.getRowHeight,
     scrollContainerRef,
+    rowHeaderWidth,
+    columnHeaderHeight: resolvedColumnHeaderHeight,
     enableFocusedCell,
     focusedCell,
     onFocusedCell,
@@ -111,7 +122,7 @@ export function TableContainer<TData extends BP_RowData>({
     enableGhostCells,
     rowHeight,
     rowHeaderWidth,
-    columnHeaderHeight,
+    columnHeaderHeight: resolvedColumnHeaderHeight,
     totalWidth: table.getTotalSize(),
     totalHeight: rowResizing.totalHeight,
     scrollContainerRef,
@@ -128,20 +139,21 @@ export function TableContainer<TData extends BP_RowData>({
         [TABLE_NO_VERTICAL_SCROLL]: ghosts != null && ghosts.rowCount > 0,
       }, className)}
     >
-      <TableQuadrant
+      <TableQuadrantStack
         table={table}
         rowHeaderWidth={rowHeaderWidth}
-        columnHeaderHeight={columnHeaderHeight}
+        columnHeaderHeight={resolvedColumnHeaderHeight}
+        columnHeaderMeasureRef={columnHeaderMeasureRef}
         enableColumnReordering={enableColumnReordering}
         enableSorting={enableSorting}
         areCellsLoading={areCellsLoading}
         areColumnHeadersLoading={areColumnHeadersLoading}
         areRowHeadersLoading={areRowHeadersLoading}
         selection={selection}
-        enableRowVirtualization={enableRowVirtualization}
-        overscanRowCount={overscanRowCount}
         rowResizing={rowResizing}
         ghosts={ghosts}
+        enableRowVirtualization={enableRowVirtualization}
+        overscanRowCount={overscanRowCount}
         scrollContainerRef={scrollContainerRef}
       />
     </div>

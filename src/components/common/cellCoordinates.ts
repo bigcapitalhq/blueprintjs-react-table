@@ -1,73 +1,87 @@
+import type { MutableRefObject } from 'react';
 import type {
   BP_RowData,
   BP_TableInstance,
 } from '../../types.ts';
+import {
+  getColumnIndexAtRegionOffset,
+  getFrozenColumnsWidth,
+  getFrozenRowsHeight,
+  getRowIndexAtRegionOffset,
+} from './pinning.ts';
 import type { CellCoordinates } from './region.ts';
 
-/**
- * Binary-searches the cumulative row offsets to map a vertical offset
- * (relative to the top of the body) to a row index, or `-1` when the offset
- * falls outside the grid.
- */
-function rowIndexAtOffset(
-  offsetTop: number,
-  rowCount: number,
-  getRowTop: (index: number) => number,
-  getRowHeight: (index: number) => number,
-): number {
-  if (offsetTop < 0 || rowCount === 0) {
-    return -1;
-  }
-  let low = 0;
-  let high = rowCount - 1;
-  while (low <= high) {
-    const mid = (low + high) >> 1;
-    const top = getRowTop(mid);
-    if (offsetTop < top) {
-      high = mid - 1;
-      continue;
-    }
-    const bottom = top + getRowHeight(mid);
-    if (offsetTop >= bottom) {
-      low = mid + 1;
-      continue;
-    }
-    return mid;
-  }
-  return -1;
-}
+export type CellLookupOptions<TData extends BP_RowData> = {
+  table: BP_TableInstance<TData>;
+  /** The main (interactive) quadrant's scroll container. */
+  scrollContainerRef: MutableRefObject<HTMLDivElement | null>;
+  /** Width of the frozen row-header column. */
+  rowHeaderWidth: number;
+  /** Effective height of the column-header area. */
+  columnHeaderHeight: number;
+  /** Resolved absolute top offset of the row at the given index. */
+  getRowTop: (index: number) => number;
+  /** Resolved height of the row at the given index. */
+  getRowHeight: (index: number) => number;
+};
 
 /**
- * Maps a point (relative to the top-left of the body cell client, where cells
- * are absolutely positioned) to a cell coordinate, or `undefined` when the
- * point falls outside the grid (e.g. on the ghost/empty area).
+ * Maps a client point (e.g. a pointer event's viewport coordinates) to a cell
+ * coordinate, or `undefined` when the point falls outside the grid.
+ *
+ * The main scroll container spans the whole table, so the point can be mapped
+ * to viewport-relative offsets within the columns area (right of the
+ * row-header column) and the rows area (below the column headers). The frozen
+ * columns/rows are pinned to the leading edge of those areas and never scroll;
+ * the scrollable region starts after them and is shifted by the container's
+ * scroll offset. This works from any quadrant, which makes selection drags
+ * that cross the frozen/scrollable boundary behave correctly.
  */
-export function getCellFromPoint<TData extends BP_RowData>(
-  table: BP_TableInstance<TData>,
-  offsetLeft: number,
-  offsetTop: number,
-  getRowTop: (index: number) => number,
-  getRowHeight: (index: number) => number,
+export function getCellFromClientPoint<TData extends BP_RowData>(
+  {
+    table,
+    scrollContainerRef,
+    rowHeaderWidth,
+    columnHeaderHeight,
+    getRowTop,
+    getRowHeight,
+  }: CellLookupOptions<TData>,
+  clientX: number,
+  clientY: number,
 ): CellCoordinates | undefined {
-  const rowCount = table.getRowModel().rows.length;
-  const row = rowIndexAtOffset(offsetTop, rowCount, getRowTop, getRowHeight);
-  if (row < 0) {
+  const element = scrollContainerRef.current;
+  if (element == null) {
     return undefined;
   }
+  const rect = element.getBoundingClientRect();
+  // Pointer position within the table's viewport, relative to the rows area
+  // (right of the row-header column) and the columns area (below the column
+  // headers).
+  const viewportX = clientX - rect.left;
+  const viewportY = clientY - rect.top;
 
-  let col = -1;
-  const columns = table.getVisibleLeafColumns();
-  for (let i = 0; i < columns.length; i++) {
-    const start = columns[i].getStart();
-    const end = start + columns[i].getSize();
-    if (offsetLeft >= start && offsetLeft < end) {
-      col = i;
-      break;
-    }
-  }
-  if (col < 0) {
+  const frozenColumnsWidth = getFrozenColumnsWidth(table);
+  const frozenRowsHeight = getFrozenRowsHeight(table, getRowHeight);
+
+  // The frozen columns/rows are pinned to the leading edge of the viewport and
+  // never scroll; the scrollable region starts after them and is shifted by
+  // the scroll offset.
+  const frozenColumnX = viewportX - rowHeaderWidth;
+  const centerColumnX = frozenColumnX - frozenColumnsWidth + element.scrollLeft;
+  const frozenRowY = viewportY - columnHeaderHeight;
+  const centerRowY = frozenRowY - frozenRowsHeight + element.scrollTop;
+
+  const col =
+    frozenColumnX >= 0 && frozenColumnX < frozenColumnsWidth
+      ? getColumnIndexAtRegionOffset(table, 'start', frozenColumnX)
+      : getColumnIndexAtRegionOffset(table, 'center', centerColumnX);
+  const row =
+    frozenRowY >= 0 && frozenRowY < frozenRowsHeight
+      ? getRowIndexAtRegionOffset(table, 'top', frozenRowY, getRowTop, getRowHeight)
+      : getRowIndexAtRegionOffset(table, 'center', centerRowY, getRowTop, getRowHeight);
+
+  if (col == null || row == null) {
     return undefined;
   }
-
   return { col, row };
 }

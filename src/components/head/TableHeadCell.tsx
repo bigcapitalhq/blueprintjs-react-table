@@ -59,12 +59,15 @@ export function TableHeadCell<TData extends BP_RowData>({
   const canSort = enableSorting && header.column.getCanSort();
   const headCellClassName = header.column.columnDef.meta?.headCellClassName;
   const [isSortMenuOpen, setIsSortMenuOpen] = useState(false);
+  // `header.index` is relative to the pinning region the header was built for;
+  // classes and selection operate on the natural column index.
+  const columnIndex = header.column.getIndex();
 
   return (
     <div
       className={classNames(
         TABLE_HEADER,
-        columnCellIndexClass(header.index),
+        columnCellIndexClass(columnIndex),
         TABLE_COLUMN_HEADER_CELL,
         { [TABLE_LAST_IN_ROW]: isLastInRow },
         { [TABLE_HAS_REORDER_HANDLE]: isReorderable },
@@ -73,7 +76,7 @@ export function TableHeadCell<TData extends BP_RowData>({
         headCellClassName,
       )}
       style={{ flexBasis: size, minWidth: 0, width: size }}
-      onMouseDown={(event) => selection?.handleColumnHeaderMouseDown(header.index, event)}
+      onMouseDown={(event) => selection?.handleColumnHeaderMouseDown(columnIndex, event)}
     >
       <div className={TABLE_COLUMN_NAME} title={name}>
         {isReorderable && (

@@ -493,3 +493,137 @@ export const EditableCells: Story = {
     return <EditableCellsTable />;
   },
 };
+
+type WidePerson = {
+  id: number;
+  name: string;
+  team: string;
+  role: string;
+  location: string;
+  age: number;
+  salary: number;
+};
+
+const wideHelper = createColumnHelper<BP_TableFeatures, WidePerson>();
+
+const wideColumns = wideHelper.columns([
+  wideHelper.accessor('id', { header: 'ID', size: 60 }),
+  wideHelper.accessor('name', { header: 'Name', size: 180 }),
+  wideHelper.accessor('team', { header: 'Team', size: 140 }),
+  wideHelper.accessor('role', { header: 'Role', size: 150 }),
+  wideHelper.accessor('location', { header: 'Location', size: 170 }),
+  wideHelper.accessor('age', { header: 'Age', size: 80 }),
+  wideHelper.accessor('salary', { header: 'Salary', size: 130 }),
+]);
+
+const teams = ['Platform', 'Design', 'Data', 'Growth'];
+const locations = ['London', 'Berlin', 'Austin', 'Tokyo'];
+const wideRoles = ['Engineer', 'Designer', 'Manager', 'Analyst'];
+
+const wideData: WidePerson[] = Array.from({ length: 120 }, (_, index) => ({
+  id: index + 1,
+  name: `Person ${index + 1}`,
+  team: teams[index % teams.length],
+  role: wideRoles[index % wideRoles.length],
+  location: locations[index % locations.length],
+  age: 20 + (index % 60),
+  salary: 60000 + (index % 40) * 1500,
+}));
+
+export const FrozenColumnsAndRows: Story = {
+  args: {
+    data,
+    columns,
+  },
+  render: () => (
+    <div className="bp-table-demo-wrapper">
+      <BP_Table
+        data={wideData}
+        columns={wideColumns}
+        numFrozenColumns={2}
+        numFrozenRows={2}
+        enableColumnReordering={true}
+        enableSorting={true}
+        enableRowResizing={true}
+        enableFocusedCell={true}
+      />
+      <p className="bp-table-demo-hint">
+        The first two columns and the first two rows are frozen, and the column/row headers are
+        always frozen. Scroll both axes: the frozen areas stay in place while the body scrolls
+        underneath them. Click cells (including frozen ones), drag selections across the frozen
+        boundary, resize columns and rows, and reorder columns — dropping a column inside the
+        frozen area freezes it.
+      </p>
+    </div>
+  ),
+};
+
+const virtualizedWideData: WidePerson[] = Array.from({ length: 10_000 }, (_, index) => ({
+  id: index + 1,
+  name: `Person ${index + 1}`,
+  team: teams[index % teams.length],
+  role: wideRoles[index % wideRoles.length],
+  location: locations[index % locations.length],
+  age: 20 + (index % 60),
+  salary: 60000 + (index % 40) * 1500,
+}));
+
+export const FrozenColumnsVirtualized: Story = {
+  args: {
+    data,
+    columns,
+  },
+  render: () => (
+    <div className="bp-table-demo-wrapper">
+      <BP_Table
+        data={virtualizedWideData}
+        columns={wideColumns}
+        numFrozenColumns={2}
+        numFrozenRows={1}
+        enableRowVirtualization={true}
+        enableFocusedCell={true}
+        overscanRowCount={10}
+      />
+      <p className="bp-table-demo-hint">
+        The first two columns and the first row are frozen while 10,000 rows are virtualized: only
+        the visible scrollable rows (plus overscan) are rendered in both the main and the frozen
+        column quadrants. Arrow keys keep the focused cell scrolled into view without hiding it
+        under the frozen areas.
+      </p>
+    </div>
+  ),
+};
+
+export const FrozenColumnsWithGhostCells: Story = {
+  args: {
+    data,
+    columns,
+  },
+  render: () => {
+    // Narrow columns guarantee the table is smaller than the viewport, so the
+    // ghost cells fill the leftover space next to the frozen areas.
+    const ghostColumns = wideHelper.columns([
+      wideHelper.accessor('id', { header: 'ID', size: 60 }),
+      wideHelper.accessor('name', { header: 'Name', size: 140 }),
+      wideHelper.accessor('age', { header: 'Age', size: 70 }),
+    ]);
+
+    return (
+      <div className="bp-table-demo-wrapper">
+        <BP_Table
+          data={wideData.slice(0, 6)}
+          columns={ghostColumns}
+          numFrozenColumns={1}
+          numFrozenRows={1}
+          enableGhostCells={true}
+          enableFocusedCell={true}
+        />
+        <p className="bp-table-demo-hint">
+          Ghost cells fill the leftover viewport space around the frozen row and column: empty
+          columns after the data (in the header and the frozen row), empty rows below the data (in
+          the frozen column), and the corner block shared by both.
+        </p>
+      </div>
+    );
+  },
+};

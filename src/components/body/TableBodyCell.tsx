@@ -14,6 +14,7 @@ import {
   columnCellIndexClass,
   rowCellIndexClass,
 } from '../common/classes.ts';
+import type { ColumnRegion } from '../common/pinning.ts';
 import type {
   BP_RowData,
   BP_TableFeatures,
@@ -23,10 +24,12 @@ import type {
 export type TableBodyCellProps<TData extends BP_RowData> = {
   table: BP_TableInstance<TData>;
   cell: Cell<BP_TableFeatures, TData, unknown>;
+  /** Absolute index of the row this cell belongs to. */
   rowIndex: number;
-  /** Absolute top offset of the row within the body's virtual client. */
+  /** Top offset of the row within its quadrant's body, in pixels. */
   rowTop: number;
-  columnIndex: number;
+  /** Which column region this cell belongs to; positions are relative to it. */
+  columnRegion: ColumnRegion;
   rowHeight: number;
   loading: boolean;
   isLastInRow: boolean;
@@ -38,14 +41,14 @@ export function TableBodyCell<TData extends BP_RowData>({
   cell,
   rowIndex,
   rowTop,
-  columnIndex,
+  columnRegion,
   rowHeight,
   loading,
   isLastInRow,
   isLastInColumn,
 }: TableBodyCellProps<TData>) {
   const size = cell.column.getSize();
-  const start = cell.column.getStart();
+  const start = cell.column.getStart(columnRegion);
   const bodyCellClassName = cell.column.columnDef.meta?.bodyCellClassName;
 
   return (
@@ -54,7 +57,7 @@ export function TableBodyCell<TData extends BP_RowData>({
         TABLE_CELL,
         TABLE_TRUNCATED_CELL,
         rowCellIndexClass(rowIndex),
-        columnCellIndexClass(columnIndex),
+        columnCellIndexClass(cell.column.getIndex()),
         rowIndex % 2 === 0 ? TABLE_CELL_LEDGER_EVEN : TABLE_CELL_LEDGER_ODD,
         {
           [TABLE_LAST_IN_ROW]: isLastInRow,

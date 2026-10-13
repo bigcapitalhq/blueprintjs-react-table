@@ -11,6 +11,7 @@ import {
   TABLE_HEADER_CONTENT,
   TABLE_THEAD,
 } from '../common/classes.ts';
+import { getRegionWidth, type ColumnRegion } from '../common/pinning.ts';
 import { getGhostedTableWidth, type BP_GhostCells } from '../../hooks/use-ghost-cells.ts';
 import type {
   BP_RowData,
@@ -22,6 +23,7 @@ import { TableHeadCell } from './TableHeadCell.tsx';
 export type TableHeadProps<TData extends BP_RowData> = {
   table: BP_TableInstance<TData>;
   headerGroup: HeaderGroup<BP_TableFeatures, TData>;
+  columnRegion: ColumnRegion;
   enableSorting?: boolean;
   areColumnHeadersLoading: boolean;
   ghosts?: BP_GhostCells;
@@ -30,14 +32,16 @@ export type TableHeadProps<TData extends BP_RowData> = {
 export function TableHead<TData extends BP_RowData>({
   table,
   headerGroup,
+  columnRegion,
   enableSorting = false,
   areColumnHeadersLoading,
   ghosts,
 }: TableHeadProps<TData>) {
-  // TanStack builds header groups from visible leaf columns, so `headers` (and
-  // each header's `index`) already exclude hidden columns.
+  // TanStack builds the region's header groups from visible leaf columns, so
+  // `headers` (and each header's column index) already exclude hidden and
+  // other-region columns.
   const lastHeaderId = headerGroup.headers[headerGroup.headers.length - 1]?.id;
-  const width = getGhostedTableWidth(table.getTotalSize(), ghosts);
+  const width = getGhostedTableWidth(getRegionWidth(table, columnRegion), ghosts);
 
   return (
     <div
