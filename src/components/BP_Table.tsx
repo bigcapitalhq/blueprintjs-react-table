@@ -10,6 +10,7 @@ import {
   TableLoadingOption,
 } from '../types.ts';
 import { useBPTableInstance } from '../hooks/use-bp-table-instance.ts';
+import { useFreezePinning } from '../hooks/use-freeze-pinning.ts';
 import { DEFAULT_OVERSCAN_ROW_COUNT } from '../hooks/use-row-virtualizer.ts';
 import type {
   FocusedCellCoordinates,
@@ -90,6 +91,24 @@ export type BP_TableProps<TData extends BP_RowData> =
      */
     enableRowVirtualization?: boolean;
     /**
+     * Number of leftmost columns that are frozen (pinned in place) while all
+     * other columns remain scrollable, mirroring Blueprint's
+     * `numFrozenColumns`. The frozen columns are derived from the current
+     * column order and column visibility, so reordering and hiding columns
+     * keeps freezing correct. Column headers and row headers are always frozen.
+     *
+     * @default 0
+     */
+    numFrozenColumns?: number;
+    /**
+     * Number of topmost rows that are frozen (pinned in place) while all other
+     * rows remain scrollable, mirroring Blueprint's `numFrozenRows`. The frozen
+     * rows are derived from the current row model, so freezing follows sorting.
+     *
+     * @default 0
+     */
+    numFrozenRows?: number;
+    /**
      * Number of rows rendered above and below the visible viewport when
      * `enableRowVirtualization` is enabled.
      *
@@ -146,6 +165,8 @@ export function BP_Table<TData extends BP_RowData>({
   onSelection,
   selectionModes,
   enableRowVirtualization = false,
+  numFrozenColumns = 0,
+  numFrozenRows = 0,
   overscanRowCount = DEFAULT_OVERSCAN_ROW_COUNT,
   columnVisibility,
   enableRowResizing = false,
@@ -164,6 +185,8 @@ export function BP_Table<TData extends BP_RowData>({
       ...(columnVisibility !== undefined ? { columnVisibility } : {}),
     },
   });
+
+  useFreezePinning({ table, numFrozenColumns, numFrozenRows });
 
   const areCellsLoading = hasLoadingOption(loadingOptions, TableLoadingOption.CELLS);
   const areColumnHeadersLoading = hasLoadingOption(

@@ -3,8 +3,10 @@ import {
   type MutableRefObject,
 } from 'react';
 import {
+  ColumnPinningState,
   ColumnVisibilityState,
   RowData,
+  RowPinningState,
   TableFeatures,
   TableOptions,
   TableState,
@@ -85,5 +87,9 @@ export type BP_TableFeatures = TableFeatures;
 export type BP_TableState = TableState<BP_TableFeatures>;
 /** Maps column ids to their visibility (`true` = visible, `false` = hidden). */
 export type BP_VisibilityState = ColumnVisibilityState;
+/** Maps frozen ("start") and right-pinned ("end") column ids. */
+export type BP_ColumnPinningState = ColumnPinningState;
+/** Maps frozen ("top") and bottom-pinned ("bottom") row ids. */
+export type BP_RowPinningState = RowPinningState;
 export type BP_TableInstance<TData extends BP_RowData = BP_RowData> =
   ReactTable<BP_TableFeatures, TData>;
