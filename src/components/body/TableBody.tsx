@@ -1,4 +1,5 @@
 import classNames from 'classnames';
+import { ContextMenu } from '@blueprintjs/core';
 import {
   TABLE_BODY_CELLS,
   TABLE_BODY_VIRTUAL_CLIENT,
@@ -62,6 +63,7 @@ export function TableBody<TData extends BP_RowData>({
   ...restProps
 }: TableBodyProps<TData>) {
   const selection = useTableSelection();
+  const isBodyContextMenuEnabled = selection != null && selection.isBodyContextMenuEnabled;
   const rows = table.getRowModel().rows;
   const frozenRowCount = getFrozenRowCount(table);
   const isTopRegion = rowRegion === 'top';
@@ -89,13 +91,18 @@ export function TableBody<TData extends BP_RowData>({
       style={{ paddingLeft: offsetLeft, paddingTop: offsetTop }}
     >
       <div>
-        <div
+        <ContextMenu
           className={classNames(TABLE_BODY_VIRTUAL_CLIENT, TABLE_CELL_CLIENT)}
           style={{ height: regionHeight, width: regionWidth }}
           onPointerDown={selection?.handleBodyPointerDown}
           onPointerMove={selection?.handleBodyPointerMove}
           onPointerUp={selection?.handleBodyPointerUp}
           onPointerCancel={selection?.handleBodyPointerCancel}
+          disabled={!isBodyContextMenuEnabled}
+          onContextMenu={isBodyContextMenuEnabled ? selection?.handleBodyContextMenu : undefined}
+          content={({ mouseEvent }) =>
+            mouseEvent == null ? undefined : selection?.renderBodyContextMenu(mouseEvent)
+          }
         >
           <div className={TABLE_BODY_CELLS}>
             {renderedRowIndices.map((rowIndex) => {
@@ -147,7 +154,7 @@ export function TableBody<TData extends BP_RowData>({
               getRowHeight={rowResizing.getRowHeight}
             />
           )}
-        </div>
+        </ContextMenu>
       </div>
     </div>
   );

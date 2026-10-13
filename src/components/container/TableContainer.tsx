@@ -18,6 +18,7 @@ import { useGhostCells } from '../../hooks/use-ghost-cells.ts';
 import type { RowVirtualizerOptions } from '../../hooks/use-row-virtualizer.ts';
 import { useRowResizing, type RowResizingApi } from '../../hooks/use-row-resizing.ts';
 import { TableQuadrantStack } from '../quadrant/TableQuadrantStack.tsx';
+import type { BP_BodyContextMenuRenderer } from '../common/menu-context.ts';
 import type {
   BP_RowData,
   BP_TableInstance,
@@ -38,6 +39,8 @@ export type TableContainerProps<TData extends BP_RowData> = HTMLPropsRef<HTMLDiv
     enableSorting?: boolean;
     enableFocusedCell?: boolean;
     enableGhostCells?: boolean;
+    bodyContextMenuRenderer?: BP_BodyContextMenuRenderer<TData>;
+    enableBodyContextMenu?: boolean;
     focusedCell?: FocusedCellCoordinates;
     onFocusedCell?: (cell: FocusedCellCoordinates) => void;
     onFocusedRegion?: (region: FocusedRegion) => void;
@@ -64,6 +67,8 @@ export function TableContainer<TData extends BP_RowData>({
   areRowHeadersLoading,
   enableFocusedCell = false,
   enableGhostCells = false,
+  bodyContextMenuRenderer,
+  enableBodyContextMenu,
   focusedCell,
   onFocusedCell,
   onFocusedRegion,
@@ -109,6 +114,8 @@ export function TableContainer<TData extends BP_RowData>({
     scrollContainerRef,
     rowHeaderWidth,
     columnHeaderHeight: resolvedColumnHeaderHeight,
+    bodyContextMenuRenderer,
+    enableBodyContextMenu,
     enableFocusedCell,
     focusedCell,
     onFocusedCell,

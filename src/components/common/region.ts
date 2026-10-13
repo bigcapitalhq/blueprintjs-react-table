@@ -177,6 +177,100 @@ export class Regions {
     return Regions.intervalsEqual(regionA.rows, regionB.rows) && Regions.intervalsEqual(regionA.cols, regionB.cols);
   }
 
+  /**
+   * Returns the index of the region that wholly contains the supplied
+   * region. Returns -1 if no such region is found.
+   */
+  public static findContainingRegion(regions: Region[] | null | undefined, region: Region): number {
+    if (regions == null) {
+      return -1;
+    }
+    for (let i = 0; i < regions.length; i++) {
+      if (Regions.regionContains(regions[i], region)) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  /**
+   * Returns true if the regions fully contain the query region.
+   */
+  public static containsRegion(regions: Region[], query: Region): boolean {
+    return Regions.overlapsRegion(regions, query, false);
+  }
+
+  /**
+   * Returns true if the regions at least partially overlap the query region.
+   * When `allowPartialOverlap` is false (the default), every interval of the
+   * query region must be fully contained in the corresponding interval of a
+   * region.
+   */
+  public static overlapsRegion(regions: Region[], query: Region, allowPartialOverlap = false): boolean {
+    const intervalCompareFn = allowPartialOverlap ? Regions.intervalOverlaps : Regions.intervalContains;
+
+    if (regions == null || query == null) {
+      return false;
+    }
+
+    for (const region of regions) {
+      const cardinality = Regions.getRegionCardinality(region);
+      switch (cardinality) {
+        case RegionCardinality.FULL_TABLE:
+          return true;
+        case RegionCardinality.FULL_COLUMNS:
+          if (intervalCompareFn(region.cols!, query.cols)) {
+            return true;
+          }
+          continue;
+        case RegionCardinality.FULL_ROWS:
+          if (intervalCompareFn(region.rows!, query.rows)) {
+            return true;
+          }
+          continue;
+        case RegionCardinality.CELLS:
+          if (intervalCompareFn(region.cols!, query.cols) && intervalCompareFn(region.rows!, query.rows)) {
+            return true;
+          }
+          continue;
+        default:
+          break;
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Using the supplied array of potentially non-contiguous `Region`s, returns
+   * an ordered array of every unique cell that exists in those regions. The
+   * cell coordinates are sorted by row and then column.
+   */
+  public static enumerateUniqueCells(
+    regions: Region[] | null | undefined,
+    numRows: number,
+    numCols: number,
+  ): CellCoordinates[] {
+    if (regions == null || regions.length === 0) {
+      return [];
+    }
+
+    const seen = new Set<string>();
+    const list: CellCoordinates[] = [];
+    for (const region of regions) {
+      Regions.eachCellInRegion(region, numRows, numCols, (row, col) => {
+        const key = `${row}-${col}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          list.push({ col, row });
+        }
+      });
+    }
+
+    list.sort((cellA, cellB) => cellA.row - cellB.row || cellA.col - cellB.col);
+    return list;
+  }
+
   public static joinStyledRegionGroups(
     selectedRegions: Region[] | undefined,
     focusedRegion: FocusedRegion | undefined,
@@ -192,6 +286,70 @@ export class Regions {
       });
     }
     return regionGroups;
+  }
+
+  private static regionContains(regionA: Region, regionB: Region): boolean {
+    return Regions.overlapsRegion([regionA], regionB, false);
+  }
+
+  private static intervalContains(
+    intervalA: CellInterval | null | undefined,
+    intervalB: CellInterval | null | undefined,
+  ): boolean {
+    if (intervalA == null || intervalB == null) {
+      return false;
+    }
+    return intervalA[0] <= intervalB[0] && intervalB[1] <= intervalA[1];
+  }
+
+  private static intervalOverlaps(
+    intervalA: CellInterval | null | undefined,
+    intervalB: CellInterval | null | undefined,
+  ): boolean {
+    if (intervalA == null || intervalB == null) {
+      return false;
+    }
+    return intervalA[0] <= intervalB[1] && intervalB[0] <= intervalA[1];
+  }
+
+  private static eachCellInRegion(
+    region: Region,
+    numRows: number,
+    numCols: number,
+    iteratee: (row: number, col: number) => void,
+  ): void {
+    switch (Regions.getRegionCardinality(region)) {
+      case RegionCardinality.FULL_TABLE:
+        for (let row = 0; row < numRows; row++) {
+          for (let col = 0; col < numCols; col++) {
+            iteratee(row, col);
+          }
+        }
+        break;
+      case RegionCardinality.FULL_COLUMNS:
+        for (let row = 0; row < numRows; row++) {
+          for (let col = region.cols![0]; col <= region.cols![1]; col++) {
+            iteratee(row, col);
+          }
+        }
+        break;
+      case RegionCardinality.FULL_ROWS:
+        for (let row = region.rows![0]; row <= region.rows![1]; row++) {
+          for (let col = 0; col < numCols; col++) {
+            iteratee(row, col);
+          }
+        }
+        break;
+      case RegionCardinality.CELLS:
+        for (let row = region.rows![0]; row <= region.rows![1]; row++) {
+          for (let col = region.cols![0]; col <= region.cols![1]; col++) {
+            iteratee(row, col);
+          }
+        }
+        break;
+      default:
+        break;
+    }
   }
 
   private static clamp(value: number, min: number, max: number): number {

@@ -7,12 +7,17 @@ import {
   type MouseEvent as ReactMouseEvent,
   type MutableRefObject,
   type PointerEvent as ReactPointerEvent,
+  type ReactElement,
 } from 'react';
 import type {
   BP_RowData,
   BP_TableInstance,
 } from '../types.ts';
 import { getCellFromClientPoint } from '../components/common/cellCoordinates.ts';
+import {
+  BP_MenuContextImpl,
+  type BP_BodyContextMenuRenderer,
+} from '../components/common/menu-context.ts';
 import {
   getFrozenColumnCount,
   getFrozenColumnsWidth,
@@ -45,6 +50,9 @@ export type CellFocusSelectionOptions<TData extends BP_RowData> = {
   /** Effective height of the column-header area. */
   columnHeaderHeight: number;
 
+  bodyContextMenuRenderer?: BP_BodyContextMenuRenderer<TData>;
+  enableBodyContextMenu?: boolean;
+
   enableFocusedCell?: boolean;
   focusedCell?: FocusedCellCoordinates | undefined;
   onFocusedCell?: (cell: FocusedCellCoordinates) => void;
@@ -62,13 +70,26 @@ export type CellFocusSelectionApi = {
   regionGroups: StyledRegionGroup[];
   isSelectionModeEnabled: (cardinality: RegionCardinality) => boolean;
   handleKeyDown: (event: ReactKeyboardEvent<HTMLDivElement>) => void;
-  handleBodyPointerDown: (event: ReactPointerEvent<HTMLDivElement>) => void;
-  handleBodyPointerMove: (event: ReactPointerEvent<HTMLDivElement>) => void;
+  handleBodyPointerDown: (event: ReactPointerEvent<HTMLElement>) => void;
+  handleBodyPointerMove: (event: ReactPointerEvent<HTMLElement>) => void;
   handleBodyPointerUp: () => void;
   handleBodyPointerCancel: () => void;
   handleColumnHeaderMouseDown: (index: number, event: ReactMouseEvent) => void;
   handleRowHeaderMouseDown: (index: number, event: ReactMouseEvent) => void;
   handleMenuMouseDown: (event: ReactMouseEvent) => void;
+  /** Whether a body context menu renderer is configured and enabled. */
+  isBodyContextMenuEnabled: boolean;
+  /**
+   * Applies Blueprint's right-click semantics before a body context menu
+   * opens: when the right-clicked cell is not part of the current selection,
+   * the selection (and focused cell) move to that cell.
+   */
+  handleBodyContextMenu: (event: ReactMouseEvent<HTMLElement>) => void;
+  /**
+   * Builds the menu context for the right-click event and invokes the
+   * configured body context menu renderer.
+   */
+  renderBodyContextMenu: (event: ReactMouseEvent<HTMLElement>) => ReactElement | undefined;
 };
 
 type DragState = {
@@ -96,6 +117,8 @@ export function useCellFocusSelection<TData extends BP_RowData>({
   scrollContainerRef,
   rowHeaderWidth,
   columnHeaderHeight,
+  bodyContextMenuRenderer,
+  enableBodyContextMenu,
   enableFocusedCell = false,
   focusedCell,
   onFocusedCell,
@@ -107,6 +130,7 @@ export function useCellFocusSelection<TData extends BP_RowData>({
   const isFocusEnabled = enableFocusedCell;
   const isFocusControlled = focusedCell != null;
   const isSelectionControlled = controlledSelectedRegions != null;
+  const isBodyContextMenuEnabled = enableBodyContextMenu ?? bodyContextMenuRenderer != null;
 
   const [focusedRegionState, setFocusedRegionState] = useState<FocusedRegion | undefined>(() =>
     isFocusEnabled ? { type: FocusMode.CELL, col: 0, focusSelectionIndex: 0, row: 0 } : undefined,
@@ -341,7 +365,13 @@ export function useCellFocusSelection<TData extends BP_RowData>({
   );
 
   const handleBodyPointerDown = useCallback(
-    (event: ReactPointerEvent<HTMLDivElement>) => {
+    (event: ReactPointerEvent<HTMLElement>) => {
+      // Only the primary button activates selection: right-click is handled by
+      // the context menu interaction (and by the browser's native menu when no
+      // renderer is configured), mirroring Blueprint's `DragSelectable`.
+      if (event.button !== 0) {
+        return;
+      }
       const cell = getCellFromEvent(event.clientX, event.clientY);
       if (cell == null) {
         return;
@@ -367,7 +397,7 @@ export function useCellFocusSelection<TData extends BP_RowData>({
   );
 
   const handleBodyPointerMove = useCallback(
-    (event: ReactPointerEvent<HTMLDivElement>) => {
+    (event: ReactPointerEvent<HTMLElement>) => {
       const drag = dragRef.current;
       if (drag == null) {
         return;
@@ -393,6 +423,57 @@ export function useCellFocusSelection<TData extends BP_RowData>({
   const handleBodyPointerCancel = useCallback(() => {
     dragRef.current = null;
   }, []);
+
+  const handleBodyContextMenu = useCallback(
+    (event: ReactMouseEvent<HTMLElement>) => {
+      if (!isBodyContextMenuEnabled) {
+        return;
+      }
+      const cell = getCellFromEvent(event.clientX, event.clientY);
+      if (cell == null) {
+        return;
+      }
+      const target = Regions.cell(cell.row, cell.col);
+      if (Regions.findContainingRegion(selectedRegions, target) >= 0) {
+        // The right-click landed inside the current selection: keep it, so the
+        // menu acts on the whole selection.
+        return;
+      }
+      if (isSelectionModeEnabled(RegionCardinality.CELLS)) {
+        handleSelection([target]);
+      }
+      handleFocus({ type: FocusMode.CELL, col: cell.col, focusSelectionIndex: 0, row: cell.row });
+    },
+    [
+      getCellFromEvent,
+      handleFocus,
+      handleSelection,
+      isBodyContextMenuEnabled,
+      isSelectionModeEnabled,
+      selectedRegions,
+    ],
+  );
+
+  const renderBodyContextMenu = useCallback(
+    (event: ReactMouseEvent<HTMLElement>): ReactElement | undefined => {
+      if (!isBodyContextMenuEnabled || bodyContextMenuRenderer == null) {
+        return undefined;
+      }
+      const cell = getCellFromEvent(event.clientX, event.clientY);
+      if (cell == null) {
+        return undefined;
+      }
+      const context = new BP_MenuContextImpl<TData>({
+        table,
+        target: Regions.cell(cell.row, cell.col),
+        selectedRegions,
+        numRows: table.getRowModel().rows.length,
+        numCols: table.getVisibleLeafColumns().length,
+      });
+      return bodyContextMenuRenderer(context) ?? undefined;
+    },
+    [bodyContextMenuRenderer, getCellFromEvent, isBodyContextMenuEnabled, selectedRegions, table],
+  );
 
   const handleColumnHeaderMouseDown = useCallback(
     (index: number, event: ReactMouseEvent) => {
@@ -460,6 +541,7 @@ export function useCellFocusSelection<TData extends BP_RowData>({
 
   return {
     focusedRegion,
+    handleBodyContextMenu,
     handleBodyPointerCancel,
     handleBodyPointerDown,
     handleBodyPointerMove,
@@ -468,8 +550,10 @@ export function useCellFocusSelection<TData extends BP_RowData>({
     handleKeyDown,
     handleMenuMouseDown,
     handleRowHeaderMouseDown,
+    isBodyContextMenuEnabled,
     isSelectionModeEnabled,
     regionGroups,
+    renderBodyContextMenu,
     selectedRegions,
   };
 }
