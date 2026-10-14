@@ -170,6 +170,27 @@ export const FocusSelection: Story = {
   ],
 };
 
+export const RowHeadersDisabled: Story = {
+  args: {
+    data,
+    columns,
+    enableRowHeader: false,
+    showRowSelectionCheckboxes: true,
+  },
+  decorators: [
+    (Story) => (
+      <div className="bp-table-demo-wrapper">
+        <Story />
+        <p className="bp-table-demo-hint">
+          With <code>enableRowHeader=false</code>, the row-number column and the corner menu are
+          hidden, mirroring Blueprint. The row-selection checkboxes column is independent and still
+          renders, along with its select-all header.
+        </p>
+      </div>
+    ),
+  ],
+};
+
 export const RowSelection: Story = {
   args: {
     data,

@@ -27,6 +27,8 @@ export type TableRowHeadersProps<TData extends BP_RowData> = HTMLPropsRef<HTMLDi
   /** Which row region this row header renders: frozen ("top") or scrollable ("center"). */
   rowRegion: RowRegion;
   rowHeaderWidth: number;
+  /** Whether to render the row-number column; when `false`, only the selection column renders. */
+  enableRowHeader?: boolean;
   /** Width of the row-selection checkboxes column; `0` hides the column. */
   selectionColumnWidth?: number;
   areRowHeadersLoading: boolean;
@@ -36,16 +38,18 @@ export type TableRowHeadersProps<TData extends BP_RowData> = HTMLPropsRef<HTMLDi
 };
 
 /**
- * Renders the row-header cells of one quadrant's row region: the row numbers,
- * and, when enabled, the row-selection checkboxes column right after them.
- * Rows keep their absolute indices (so labels, selection, and styling are
- * stable across regions); scrollable ("center") rows are virtualized with the
- * shared row virtualizer, while frozen rows are always rendered.
+ * Renders the row-header cells of one quadrant's row region: the row numbers
+ * (when `enableRowHeader` is on), and, when enabled, the row-selection
+ * checkboxes column right after them. Rows keep their absolute indices (so
+ * labels, selection, and styling are stable across regions); scrollable
+ * ("center") rows are virtualized with the shared row virtualizer, while frozen
+ * rows are always rendered.
  */
 export function TableRowHeaders<TData extends BP_RowData>({
   table,
   rowRegion,
   rowHeaderWidth,
+  enableRowHeader = true,
   selectionColumnWidth = 0,
   areRowHeadersLoading,
   rowVirtualizer,
@@ -54,7 +58,14 @@ export function TableRowHeaders<TData extends BP_RowData>({
   className,
   ...restProps
 }: TableRowHeadersProps<TData>) {
+  // Nothing to render when both the row numbers and the selection column are off.
+  if (!enableRowHeader && selectionColumnWidth === 0) {
+    return null;
+  }
+
   const rows = table.getRowModel().rows;
+  // The row-number column collapses when the row headers are disabled.
+  const rowNumberColumnWidth = enableRowHeader ? rowHeaderWidth : 0;
   const frozenRowCount = getFrozenRowCount(table);
   const isTopRegion = rowRegion === 'top';
   const regionStart = isTopRegion ? 0 : frozenRowCount;
@@ -97,44 +108,46 @@ export function TableRowHeaders<TData extends BP_RowData>({
     <div
       {...restProps}
       className={classNames(TABLE_ROW_HEADERS, className)}
-      style={{ width: rowHeaderWidth + selectionColumnWidth }}
+      style={{ width: rowNumberColumnWidth + selectionColumnWidth }}
     >
       <div style={{ display: 'flex', height: regionHeight }}>
-        <div style={{ flex: '0 0 auto', width: rowHeaderWidth }}>
-          <div className={TABLE_ROW_HEADERS_CELLS_CONTAINER} style={cellsContainerStyle}>
-            {renderedRowIndices.map((rowIndex) => (
-              <TableRowHeaderCell
-                key={rows[rowIndex]?.id ?? rowIndex}
-                row={rows[rowIndex]}
-                rowIndex={rowIndex}
-                rowHeight={rowResizing.getRowHeight(rowIndex)}
-                loading={areRowHeadersLoading}
-                isLastInColumn={rowIndex === lastRowIndex}
-                isResizing={rowResizing.resizingRowIndex === rowIndex}
-                onResizeStart={
-                  rowResizing.enabled
-                    ? (event) => rowResizing.startRowResize(rowIndex, event)
-                    : undefined
-                }
-              />
-            ))}
-            {ghostRowIndices.map((rowIndex, ghostRowOffset) => (
-              <div
-                key={`ghost-row-header-${ghostRowOffset}`}
-                className={classNames(TABLE_HEADER, rowCellIndexClass(rowIndex), {
-                  [Classes.LOADING]: areRowHeadersLoading,
-                })}
-                style={{ flexBasis: ghosts?.rowHeight, height: ghosts?.rowHeight, minHeight: 0 }}
-              >
-                <div className={TABLE_ROW_NAME}>
-                  <div className={TABLE_ROW_NAME_TEXT}>
-                    <LoadableContent loading={areRowHeadersLoading} />
+        {enableRowHeader && (
+          <div style={{ flex: '0 0 auto', width: rowHeaderWidth }}>
+            <div className={TABLE_ROW_HEADERS_CELLS_CONTAINER} style={cellsContainerStyle}>
+              {renderedRowIndices.map((rowIndex) => (
+                <TableRowHeaderCell
+                  key={rows[rowIndex]?.id ?? rowIndex}
+                  row={rows[rowIndex]}
+                  rowIndex={rowIndex}
+                  rowHeight={rowResizing.getRowHeight(rowIndex)}
+                  loading={areRowHeadersLoading}
+                  isLastInColumn={rowIndex === lastRowIndex}
+                  isResizing={rowResizing.resizingRowIndex === rowIndex}
+                  onResizeStart={
+                    rowResizing.enabled
+                      ? (event) => rowResizing.startRowResize(rowIndex, event)
+                      : undefined
+                  }
+                />
+              ))}
+              {ghostRowIndices.map((rowIndex, ghostRowOffset) => (
+                <div
+                  key={`ghost-row-header-${ghostRowOffset}`}
+                  className={classNames(TABLE_HEADER, rowCellIndexClass(rowIndex), {
+                    [Classes.LOADING]: areRowHeadersLoading,
+                  })}
+                  style={{ flexBasis: ghosts?.rowHeight, height: ghosts?.rowHeight, minHeight: 0 }}
+                >
+                  <div className={TABLE_ROW_NAME}>
+                    <div className={TABLE_ROW_NAME_TEXT}>
+                      <LoadableContent loading={areRowHeadersLoading} />
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
+        )}
         {selectionColumnWidth > 0 && (
           <div style={{ flex: '0 0 auto', width: selectionColumnWidth }}>
             <div className={TABLE_ROW_HEADERS_CELLS_CONTAINER} style={cellsContainerStyle}>

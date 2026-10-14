@@ -39,6 +39,16 @@ export type BP_TableProps<TData extends BP_RowData> =
     htmlProps?: HTMLPropsRef<HTMLDivElement>;
     rowHeight?: number;
     rowHeaderWidth?: number;
+    /**
+     * If `false`, hides the row headers (the row-number column) and the corner
+     * settings menu, mirroring Blueprint's `enableRowHeader`. The row-selection
+     * checkboxes column (`showRowSelectionCheckboxes`) and frozen columns are
+     * unaffected. Row resizing (`enableRowResizing`) is unavailable without row
+     * headers, since its drag handle lives on the row header.
+     *
+     * @default true
+     */
+    enableRowHeader?: boolean;
     columnHeaderHeight?: number;
     enableColumnReordering?: boolean;
     loadingOptions?: TableLoadingOption[];
@@ -226,6 +236,7 @@ export function BP_Table<TData extends BP_RowData>({
   showRowSelectionCheckboxes = false,
   rowSelectionColumnWidth = DEFAULT_ROW_SELECTION_COLUMN_WIDTH,
   rowHeaderWidth = DEFAULT_ROW_HEADER_WIDTH,
+  enableRowHeader = true,
   columnHeaderHeight = DEFAULT_COLUMN_HEADER_HEIGHT,
   enableColumnReordering = false,
   enableSorting = false,
@@ -296,6 +307,7 @@ export function BP_Table<TData extends BP_RowData>({
       table={table}
       rowHeight={rowHeight}
       rowHeaderWidth={rowHeaderWidth}
+      enableRowHeader={enableRowHeader}
       columnHeaderHeight={columnHeaderHeight}
       enableColumnReordering={enableColumnReordering}
       enableSorting={enableSorting}

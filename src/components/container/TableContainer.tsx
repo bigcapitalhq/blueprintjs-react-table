@@ -35,6 +35,8 @@ export type TableContainerProps<TData extends BP_RowData> = HTMLPropsRef<HTMLDiv
     'enableRowVirtualization' | 'overscanRowCount'
   > & {
     table: BP_TableInstance<TData>;
+    /** Whether to render the row headers (the row-number column) and corner menu. */
+    enableRowHeader?: boolean;
     enableColumnReordering?: boolean;
     enableSorting?: boolean;
     enableFocusedCell?: boolean;
@@ -61,6 +63,7 @@ export function TableContainer<TData extends BP_RowData>({
   table,
   rowHeight,
   rowHeaderWidth,
+  enableRowHeader = true,
   columnHeaderHeight,
   enableColumnReordering = false,
   enableSorting = false,
@@ -93,8 +96,11 @@ export function TableContainer<TData extends BP_RowData>({
 
   // The row numbers and the row-selection checkboxes column form the frozen
   // chrome to the left of the table's columns; the coordinate math (focus,
-  // selection, ghost cells) treats them as one row-header area.
-  const effectiveRowHeaderWidth = rowHeaderWidth + selectionColumnWidth;
+  // selection, ghost cells) treats them as one row-header area. Disabling the
+  // row headers collapses the row-number column, leaving only the selection
+  // column (when enabled).
+  const effectiveRowHeaderWidth =
+    (enableRowHeader ? rowHeaderWidth : 0) + selectionColumnWidth;
 
   // Column headers may render multiple rows (grouped columns) or grow with
   // custom content, so the effective height is measured and shared by the
@@ -157,6 +163,7 @@ export function TableContainer<TData extends BP_RowData>({
       <TableQuadrantStack
         table={table}
         rowHeaderWidth={rowHeaderWidth}
+        enableRowHeader={enableRowHeader}
         columnHeaderHeight={resolvedColumnHeaderHeight}
         columnHeaderMeasureRef={columnHeaderMeasureRef}
         enableColumnReordering={enableColumnReordering}
