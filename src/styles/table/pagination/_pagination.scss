@@ -1,0 +1,53 @@
+/*
+ * Pagination bar rendered below the table by the `withPagination` HOC.
+ */
+
+.#{$ns}-table-pagination-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+
+  // The wrapped table fills the space above the bar (the table container
+  // already declares `height: 100%` and may shrink in the flex column).
+  > .#{$ns}-table-container {
+    flex: 1 1 auto;
+  }
+}
+
+.#{$ns}-table-pagination-bar {
+  align-items: center;
+  background-color: $header-background-color;
+  border-top: 1px solid $pt-divider-black;
+  color: $cell-text-color;
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  gap: $pt-spacing ($pt-spacing * 4);
+  justify-content: space-between;
+  min-height: $pt-spacing * 9;
+  padding: $pt-spacing ($pt-spacing * 2);
+  user-select: none;
+
+  .#{$ns}-dark & {
+    background-color: $dark-header-background-color;
+    border-top-color: $pt-dark-divider-black;
+    color: $dark-cell-text-color;
+  }
+}
+
+.#{$ns}-table-pagination-bar-controls {
+  align-items: center;
+  display: flex;
+  gap: $pt-spacing * 2;
+}
+
+.#{$ns}-table-pagination-bar-text {
+  color: $pt-text-color-muted;
+  font-size: $pt-font-size-small;
+  white-space: nowrap;
+
+  .#{$ns}-dark & {
+    color: $pt-dark-text-color-muted;
+  }
+}

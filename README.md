@@ -24,6 +24,7 @@ A Blueprint.js-styled data table for React, built on [TanStack Table v9](https:/
 - **Body context menu** — right-click a cell to open a custom Blueprint `Menu` (`bodyContextMenuRenderer`). A right-click outside the current selection selects the clicked cell first, and the renderer receives the selection (or the clicked cell) as a `BP_MenuContext` that also exposes the TanStack row and cell under the cursor.
 - **Row resizing** — drag the horizontal handle at the bottom of a row header (`enableRowResizing`); controlled or uncontrolled, with configurable min/max heights.
 - **Column visibility** — hide/show columns via the controlled `columnVisibility` prop or TanStack's standard state/`enableHiding` options.
+- **Pagination (HOC)** — the `withPagination` higher-order component adds TanStack row pagination and a Blueprint-styled bar below any table component, keeping pagination out of the core table; client-side or manual/server-side (`manualPagination` + `pageCount` / `rowCount`).
 
 ### Performance & data
 
@@ -183,6 +184,71 @@ clicked cell before the menu opens. Right-clicks that don't land on a body cell
 (ghost cells, empty space) fall back to the browser's native context menu.
 Pass `enableBodyContextMenu={false}` to disable the custom menu.
 
+## Pagination (HOC)
+
+Pagination is layered on top of `BP_Table` by the `withPagination` higher-order
+component, so the core table stays pagination-free. The HOC registers TanStack's
+row pagination feature, owns the page state, and renders a Blueprint-styled bar
+below the table:
+
+```tsx
+import { BP_Table, withPagination } from 'blueprintjs-react-table';
+
+const PaginatedTable = withPagination(BP_Table);
+
+<PaginatedTable data={data} columns={columns} initialPageSize={20} />;
+```
+
+Pagination options (on top of every `BP_TableProps`):
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `initialPageSize` | `number` | `10` | Initial page size for uncontrolled pagination. |
+| `initialPageIndex` | `number` | `0` | Initial zero-based page index for uncontrolled pagination. |
+| `pageSizeOptions` | `readonly number[]` | `[10, 20, 50, 100]` | Page sizes offered by the bar's select. |
+| `showPaginationBar` | `boolean` | `true` | Hide the bar while keeping the table paginated. |
+| `paginationBarClassName` | `string` | — | Class name(s) for the pagination bar. |
+
+Pagination becomes controlled when `state.pagination` is provided; pair it with
+`onPaginationChange`:
+
+```tsx
+const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
+
+<PaginatedTable
+  data={data}
+  columns={columns}
+  state={{ pagination }}
+  onPaginationChange={setPagination}
+/>;
+```
+
+For server-side pagination, pass `manualPagination` plus `pageCount` (or
+`rowCount`) and hand the table only the current page of rows; the table then
+skips client-side slicing and the bar uses the supplied counts:
+
+```tsx
+<PaginatedTable
+  data={currentPageRows}
+  columns={columns}
+  manualPagination
+  pageCount={totalPageCount}
+  rowCount={totalRowCount}
+  state={{ pagination }}
+  onPaginationChange={setPagination}
+/>;
+```
+
+Notes:
+
+- Pagination composes with sorting, row virtualization, frozen rows/columns,
+  and row resizing. Sorting (or a `data` change) resets to the first page by
+  default, per TanStack's `autoResetPageIndex`.
+- Row numbers, ledger striping, row resizing, and selection/focus regions are
+  **page-local**: each page numbers its rows starting at 1. When `selectedRegions`
+  or `focusedCell` are controlled, reset them from `onPaginationChange` if they
+  should not carry across pages.
+
 ## Core props
 
 | Prop | Type | Default | Description |
@@ -232,6 +298,9 @@ Pass `enableBodyContextMenu={false}` to disable the custom menu.
 | `FrozenColumnsAndRows` | Frozen columns and rows with focus, selection, resizing, and cross-boundary reordering. |
 | `FrozenColumnsVirtualized` | 10,000 rows with frozen columns/rows and row virtualization. |
 | `FrozenColumnsWithGhostCells` | Ghost cells filling the leftover space around frozen rows/columns. |
+| `Pagination/ClientSide` | `withPagination(BP_Table)` slicing 240 rows client-side, with sorting (resets to page 1) and page-size control. |
+| `Pagination/WithVirtualization` | Paginated pages of a 10,000-row data set, virtualized within the current page. |
+| `Pagination/ManualPagination` | Server-side pagination with `manualPagination`, `pageCount` / `rowCount`, and controlled state. |
 
 ## Scripts
 
