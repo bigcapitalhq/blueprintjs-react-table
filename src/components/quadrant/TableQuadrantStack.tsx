@@ -29,6 +29,8 @@ import { QuadrantType } from './quadrant-type.ts';
 export type TableQuadrantStackProps<TData extends BP_RowData> = {
   table: BP_TableInstance<TData>;
   rowHeaderWidth: number;
+  /** Whether to render the row headers (the row-number column) and corner menu. */
+  enableRowHeader?: boolean;
   /** Effective (measured) height of the column-header area. */
   columnHeaderHeight: number;
   /** Ref to attach to the rendered TOP quadrant's column-header area. */
@@ -60,6 +62,7 @@ export type TableQuadrantStackProps<TData extends BP_RowData> = {
 export function TableQuadrantStack<TData extends BP_RowData>({
   table,
   rowHeaderWidth,
+  enableRowHeader = true,
   columnHeaderHeight,
   columnHeaderMeasureRef,
   enableColumnReordering = false,
@@ -84,8 +87,10 @@ export function TableQuadrantStack<TData extends BP_RowData>({
   const frozenRowCount = getFrozenRowCount(table);
   const frozenRowsHeight = getFrozenRowsHeight(table, rowResizing.getRowHeight);
   // The row numbers and, when enabled, the row-selection checkboxes column form
-  // the frozen chrome to the left of the table's columns.
-  const chromeWidth = rowHeaderWidth + selectionColumnWidth;
+  // the frozen chrome to the left of the table's columns. Disabling the row
+  // headers collapses the row-number column, leaving only the selection column
+  // (when enabled).
+  const chromeWidth = (enableRowHeader ? rowHeaderWidth : 0) + selectionColumnWidth;
 
   const rowVirtualizer: BP_RowVirtualizer | undefined = useRowVirtualizer({
     table,
@@ -248,6 +253,7 @@ export function TableQuadrantStack<TData extends BP_RowData>({
   const baseQuadrantProps = {
     table,
     rowHeaderWidth,
+    enableRowHeader,
     selectionColumnWidth,
     columnHeaderHeight,
     enableSorting,

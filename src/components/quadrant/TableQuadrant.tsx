@@ -41,6 +41,8 @@ export type TableQuadrantProps<TData extends BP_RowData> = {
   quadrantType: QuadrantType;
   table: BP_TableInstance<TData>;
   rowHeaderWidth: number;
+  /** Whether to render the row headers (the row-number column) and corner menu. */
+  enableRowHeader?: boolean;
   /** Effective (measured) height of the column-header area. */
   columnHeaderHeight: number;
   /** Ref used to measure the rendered column-header height (TOP quadrant only). */
@@ -96,6 +98,7 @@ export function TableQuadrant<TData extends BP_RowData>({
   quadrantType,
   table,
   rowHeaderWidth,
+  enableRowHeader = true,
   columnHeaderHeight,
   columnHeaderMeasureRef,
   enableSorting = false,
@@ -125,6 +128,9 @@ export function TableQuadrant<TData extends BP_RowData>({
   const selection = useTableSelection();
   const frozenColumnsWidth = getFrozenColumnsWidth(table);
   const frozenRowsHeight = getFrozenRowsHeight(table, rowResizing.getRowHeight);
+  // The row-number column collapses when the row headers are disabled; the
+  // selection column (when enabled) still occupies the frozen chrome.
+  const rowNumberColumnWidth = enableRowHeader ? rowHeaderWidth : 0;
 
   const renderBody = (offsetTop: number, offsetLeft: number) => (
     <TableBody
@@ -150,7 +156,9 @@ export function TableQuadrant<TData extends BP_RowData>({
     >
       {showsMenu && (
         <>
-          <TableMenu width={rowHeaderWidth} height={columnHeaderHeight} />
+          {enableRowHeader && (
+            <TableMenu width={rowHeaderWidth} height={columnHeaderHeight} />
+          )}
           {selectionColumnWidth > 0 && (
             <TableRowSelectionHeaderCell
               table={table}
@@ -179,7 +187,7 @@ export function TableQuadrant<TData extends BP_RowData>({
       // align with it without scrolling.
       content = renderBody(
         columnHeaderHeight + frozenRowsHeight,
-        rowHeaderWidth + selectionColumnWidth + frozenColumnsWidth,
+        rowNumberColumnWidth + selectionColumnWidth + frozenColumnsWidth,
       );
       break;
     case QuadrantType.TOP:
@@ -197,12 +205,13 @@ export function TableQuadrant<TData extends BP_RowData>({
         <div style={{ paddingTop: frozenRowsHeight }}>
           <div
             className={TABLE_BOTTOM_CONTAINER}
-            style={{ width: rowHeaderWidth + selectionColumnWidth + frozenColumnsWidth }}
+            style={{ width: rowNumberColumnWidth + selectionColumnWidth + frozenColumnsWidth }}
           >
             <TableRowHeaders
               table={table}
               rowRegion="center"
               rowHeaderWidth={rowHeaderWidth}
+              enableRowHeader={enableRowHeader}
               selectionColumnWidth={selectionColumnWidth}
               areRowHeadersLoading={areRowHeadersLoading}
               rowVirtualizer={rowVirtualizer}
@@ -220,12 +229,13 @@ export function TableQuadrant<TData extends BP_RowData>({
           {columnHeaderArea}
           <div
             className={TABLE_BOTTOM_CONTAINER}
-            style={{ width: rowHeaderWidth + selectionColumnWidth + frozenColumnsWidth }}
+            style={{ width: rowNumberColumnWidth + selectionColumnWidth + frozenColumnsWidth }}
           >
             <TableRowHeaders
               table={table}
               rowRegion="top"
               rowHeaderWidth={rowHeaderWidth}
+              enableRowHeader={enableRowHeader}
               selectionColumnWidth={selectionColumnWidth}
               areRowHeadersLoading={areRowHeadersLoading}
               rowVirtualizer={rowVirtualizer}

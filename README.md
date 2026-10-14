@@ -9,6 +9,7 @@ A Blueprint.js-styled data table for React, built on [TanStack Table v9](https:/
 ### Layout & styling
 
 - **Quadrant layout** — frozen column headers, row headers, and a scrollable body, rendered with Blueprint table styles.
+- **Optional row headers** — hide the row-number column and the corner menu with `enableRowHeader={false}`, mirroring Blueprint's `enableRowHeader`; the row-selection checkboxes column and frozen columns are unaffected.
 - **Frozen columns & rows** — freeze the leftmost columns (`numFrozenColumns`) and topmost rows (`numFrozenRows`) in place while the rest of the body scrolls, mirroring Blueprint's frozen areas. The column headers and row headers are always frozen, and frozen areas stay correct across column reordering, column visibility, and sorting.
 - **Blueprint.js v6 skin** — cells, headers, selection overlays, and resize/reorder guides all use Blueprint colors and classes, so the table fits naturally into existing Blueprint apps.
 - **Grouped column headers** — nested column definitions render on additional header rows; each group spans its child columns.
@@ -301,6 +302,7 @@ Notes:
 | `data` / `columns` | TanStack `TableOptions` | — | Table data and column definitions (full TanStack option set is forwarded). |
 | `rowHeight` | `number` | `20` | Height of each body row, in pixels. |
 | `rowHeaderWidth` | `number` | `30` | Width of the frozen row-header column, in pixels. |
+| `enableRowHeader` | `boolean` | `true` | Render the row-number column; when `false`, the row headers and the corner menu are hidden (the checkbox column and frozen columns are unaffected). |
 | `columnHeaderHeight` | `number` | `30` | Height of the frozen column-header row(s), in pixels. |
 | `enableColumnReordering` | `boolean` | `false` | Drag column headers to reorder columns. |
 | `enableSorting` | `boolean` | `false` | Chevron sort menu on sortable headers; also enables TanStack sorting. |
@@ -337,6 +339,7 @@ Notes:
 | `Loading` | Skeleton placeholders in cells, column headers, and row headers. |
 | `GhostCells` | Empty ghost cells fill leftover space when the table is smaller than its viewport. |
 | `FocusSelection` | Click/drag selection, row/column/corner-header selection, arrow-key focus, Shift+arrows, Cmd/Ctrl+A. |
+| `RowHeadersDisabled` | `enableRowHeader={false}` hides the row-number column and the corner menu; the checkbox column is independent and still renders. |
 | `RowSelection` | Uncontrolled checkbox row selection seeded by `defaultRowSelection`, with shift-click ranges, select-all, and a change listener. |
 | `ControlledRowSelection` | Caller-owned `rowSelection` driven by toolbar buttons and the checkboxes. |
 | `BodyContextMenu` | Right-click a cell for a custom Blueprint menu acting on the clicked cell or the current selection. |
