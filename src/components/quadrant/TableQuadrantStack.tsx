@@ -45,6 +45,8 @@ export type TableQuadrantStackProps<TData extends BP_RowData> = {
   overscanRowCount?: number;
   /** Ref to the main quadrant's scroll container (the interactive one). */
   scrollContainerRef: MutableRefObject<HTMLDivElement | null>;
+  /** Width of the row-selection checkboxes column; `0` hides the column. */
+  selectionColumnWidth?: number;
 };
 
 /**
@@ -71,6 +73,7 @@ export function TableQuadrantStack<TData extends BP_RowData>({
   enableRowVirtualization,
   overscanRowCount,
   scrollContainerRef,
+  selectionColumnWidth = 0,
 }: TableQuadrantStackProps<TData>) {
   const gridRef = useRef<HTMLDivElement | null>(null);
   const topScrollContainerRef = useRef<HTMLDivElement | null>(null);
@@ -80,6 +83,9 @@ export function TableQuadrantStack<TData extends BP_RowData>({
   const frozenColumnsWidth = getFrozenColumnsWidth(table);
   const frozenRowCount = getFrozenRowCount(table);
   const frozenRowsHeight = getFrozenRowsHeight(table, rowResizing.getRowHeight);
+  // The row numbers and, when enabled, the row-selection checkboxes column form
+  // the frozen chrome to the left of the table's columns.
+  const chromeWidth = rowHeaderWidth + selectionColumnWidth;
 
   const rowVirtualizer: BP_RowVirtualizer | undefined = useRowVirtualizer({
     table,
@@ -97,7 +103,7 @@ export function TableQuadrantStack<TData extends BP_RowData>({
     enableColumnReordering,
     gridRef,
     scrollContainerRef,
-    rowHeaderWidth,
+    chromeWidth,
   );
 
   // The scroll offsets are only needed for the resize/reorder guides, which
@@ -237,11 +243,12 @@ export function TableQuadrantStack<TData extends BP_RowData>({
   );
 
   const topQuadrantHeight = columnHeaderHeight + frozenRowsHeight;
-  const leftQuadrantWidth = rowHeaderWidth + frozenColumnsWidth;
+  const leftQuadrantWidth = chromeWidth + frozenColumnsWidth;
 
   const baseQuadrantProps = {
     table,
     rowHeaderWidth,
+    selectionColumnWidth,
     columnHeaderHeight,
     enableSorting,
     areCellsLoading,
@@ -270,7 +277,7 @@ export function TableQuadrantStack<TData extends BP_RowData>({
             onWheel={handleFrozenQuadrantWheel}
             style={{
               height: topQuadrantHeight,
-              left: rowHeaderWidth,
+              left: chromeWidth,
               right: scrollBarThickness.vertical,
             }}
           />
@@ -294,7 +301,7 @@ export function TableQuadrantStack<TData extends BP_RowData>({
           />
           <TableResizeGuides
             table={table}
-            rowHeaderWidth={rowHeaderWidth}
+            rowHeaderWidth={chromeWidth}
             columnHeaderHeight={columnHeaderHeight}
             scrollLeft={scrollOffset.left}
             scrollTop={scrollOffset.top}
@@ -306,7 +313,7 @@ export function TableQuadrantStack<TData extends BP_RowData>({
             table={table}
             reorderingColumnId={reorderingColumnId}
             guideIndex={guideIndex}
-            rowHeaderWidth={rowHeaderWidth}
+            rowHeaderWidth={chromeWidth}
             scrollLeft={scrollOffset.left}
           />
         </TableSelectionContext.Provider>

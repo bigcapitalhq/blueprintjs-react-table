@@ -34,6 +34,7 @@ import { TableBody } from '../body/TableBody.tsx';
 import { TableRowHeaders } from '../body/TableRowHeaders.tsx';
 import { TableColumnHeaders } from '../head/TableColumnHeaders.tsx';
 import { TableMenu } from '../head/TableMenu.tsx';
+import { TableRowSelectionHeaderCell } from '../head/TableRowSelectionHeaderCell.tsx';
 import { QuadrantType } from './quadrant-type.ts';
 
 export type TableQuadrantProps<TData extends BP_RowData> = {
@@ -57,6 +58,8 @@ export type TableQuadrantProps<TData extends BP_RowData> = {
   /** Provided for every non-main quadrant; forwards wheel gestures to the main quadrant. */
   onWheel?: WheelEventHandler<HTMLDivElement>;
   style?: CSSProperties;
+  /** Width of the row-selection checkboxes column; `0` hides the column. */
+  selectionColumnWidth?: number;
 };
 
 function quadrantCssClass(quadrantType: QuadrantType) {
@@ -106,6 +109,7 @@ export function TableQuadrant<TData extends BP_RowData>({
   onScroll,
   onWheel,
   style,
+  selectionColumnWidth = 0,
 }: TableQuadrantProps<TData>) {
   const isMain = quadrantType === QuadrantType.MAIN;
   const isTopQuadrant =
@@ -144,7 +148,19 @@ export function TableQuadrant<TData extends BP_RowData>({
       // columns, which are covered by the TOP_LEFT quadrant.
       style={columnRegion === 'center' ? { paddingLeft: frozenColumnsWidth } : undefined}
     >
-      {showsMenu && <TableMenu width={rowHeaderWidth} height={columnHeaderHeight} />}
+      {showsMenu && (
+        <>
+          <TableMenu width={rowHeaderWidth} height={columnHeaderHeight} />
+          {selectionColumnWidth > 0 && (
+            <TableRowSelectionHeaderCell
+              table={table}
+              width={selectionColumnWidth}
+              height={columnHeaderHeight}
+              loading={areRowHeadersLoading}
+            />
+          )}
+        </>
+      )}
       <TableColumnHeaders
         table={table}
         columnRegion={columnRegion}
@@ -163,7 +179,7 @@ export function TableQuadrant<TData extends BP_RowData>({
       // align with it without scrolling.
       content = renderBody(
         columnHeaderHeight + frozenRowsHeight,
-        rowHeaderWidth + frozenColumnsWidth,
+        rowHeaderWidth + selectionColumnWidth + frozenColumnsWidth,
       );
       break;
     case QuadrantType.TOP:
@@ -181,12 +197,13 @@ export function TableQuadrant<TData extends BP_RowData>({
         <div style={{ paddingTop: frozenRowsHeight }}>
           <div
             className={TABLE_BOTTOM_CONTAINER}
-            style={{ width: rowHeaderWidth + frozenColumnsWidth }}
+            style={{ width: rowHeaderWidth + selectionColumnWidth + frozenColumnsWidth }}
           >
             <TableRowHeaders
               table={table}
               rowRegion="center"
               rowHeaderWidth={rowHeaderWidth}
+              selectionColumnWidth={selectionColumnWidth}
               areRowHeadersLoading={areRowHeadersLoading}
               rowVirtualizer={rowVirtualizer}
               rowResizing={rowResizing}
@@ -203,12 +220,13 @@ export function TableQuadrant<TData extends BP_RowData>({
           {columnHeaderArea}
           <div
             className={TABLE_BOTTOM_CONTAINER}
-            style={{ width: rowHeaderWidth + frozenColumnsWidth }}
+            style={{ width: rowHeaderWidth + selectionColumnWidth + frozenColumnsWidth }}
           >
             <TableRowHeaders
               table={table}
               rowRegion="top"
               rowHeaderWidth={rowHeaderWidth}
+              selectionColumnWidth={selectionColumnWidth}
               areRowHeadersLoading={areRowHeadersLoading}
               rowVirtualizer={rowVirtualizer}
               rowResizing={rowResizing}

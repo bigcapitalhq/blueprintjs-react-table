@@ -74,6 +74,10 @@ $dark-selectable-header-menu-selected-hover-background: menu-background(
       rgba($header-selected-background-color, 0.1)
     );
   }
+
+  &.#{$ns}-table-row-selected::before {
+    background-color: rgba($header-selected-background-color, 0.1);
+  }
 }
 
 .#{$ns}-table-th-menu-container {
@@ -354,6 +358,45 @@ $dark-selectable-header-menu-selected-hover-background: menu-background(
   font-size: $pt-font-size-small;
   padding: 0 $pt-spacing;
   text-align: right;
+}
+
+// The row-selection checkboxes column sits between the row numbers and the
+// frozen columns; each of its cells centers a checkbox.
+.#{$ns}-table-row-selection-cell,
+.#{$ns}-table-row-selection-header-cell {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+}
+
+// The row-header cells enforce a minimum width; the selection column may be
+// narrower than that.
+.#{$ns}-table-row-headers .#{$ns}-table-row-selection-cell {
+  min-width: 0;
+}
+
+.#{$ns}-table-row-selection-checkbox {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+  justify-content: center;
+
+  // Neutralize Blueprint's control spacing so the checkbox fits — and stays
+  // centered — inside the compact selection column. The `:not()` qualifier
+  // raises the specificity above Blueprint's own `indicator-position` rules so
+  // the centering survives any stylesheet import order, and the flex layout
+  // removes the control's inline baseline offset.
+  .#{$ns}-control:not(.#{$ns}-align-right) {
+    align-items: center;
+    display: flex;
+    justify-content: center;
+    margin: 0;
+    padding-inline-start: 0;
+
+    .#{$ns}-control-indicator {
+      margin: 0;
+    }
+  }
 }
 
 .#{$ns}-table-header-content {

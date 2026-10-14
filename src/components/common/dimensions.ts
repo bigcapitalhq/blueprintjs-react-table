@@ -3,6 +3,12 @@ export const DEFAULT_ROW_HEADER_WIDTH = 30;
 export const DEFAULT_COLUMN_HEADER_HEIGHT = 30;
 
 /**
+ * Default width of the row-selection checkboxes column rendered (when enabled)
+ * between the row numbers and the frozen columns.
+ */
+export const DEFAULT_ROW_SELECTION_COLUMN_WIDTH = 30;
+
+/**
  * Width of the empty "ghost" columns rendered when `enableGhostCells` is on.
  * Mirrors Blueprint's `Grid.DEFAULT_GHOST_WIDTH` (which also matches TanStack's
  * default column size of 150).

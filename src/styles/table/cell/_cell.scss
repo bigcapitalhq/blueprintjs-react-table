@@ -53,6 +53,16 @@
   }
 }
 
+// Rows checked through the row-selection checkboxes are tinted; the region
+// selection overlay (used by the separate region selection) layers above this.
+.#{$ns}-table-cell.#{$ns}-table-row-selected {
+  background-color: rgba($pt-intent-primary, $cell-background-color-opacity);
+
+  .#{$ns}-dark & {
+    background-color: rgba($blue4, $cell-background-color-opacity);
+  }
+}
+
 .#{$ns}-table-editable-name input {
   height: $cell-height; // fixed height for IE11
 }

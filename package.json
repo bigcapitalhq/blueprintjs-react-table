@@ -1,6 +1,6 @@
 {
   "name": "@bigcapitalhq/blueprintjs-react-table",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A Blueprint.js-styled data table for React, built on TanStack Table v9 with row virtualization, quadrant layout, and Blueprint-style focus & selection.",
   "type": "module",
   "main": "./dist/blueprintjs-react-table.cjs",

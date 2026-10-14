@@ -1,5 +1,6 @@
 import classNames from 'classnames';
 import { Classes } from '@blueprintjs/core';
+import { type Row } from '@tanstack/react-table';
 import { LoadableContent } from '../common/LoadableContent.tsx';
 import { useTableSelection } from '../common/table-selection-context.ts';
 import {
@@ -11,12 +12,22 @@ import {
   TABLE_RESIZE_HORIZONTAL,
   TABLE_ROW_NAME,
   TABLE_ROW_NAME_TEXT,
+  TABLE_ROW_SELECTED,
   rowCellIndexClass,
 } from '../common/classes.ts';
 import type { RowResizeStartEvent } from '../../hooks/use-row-resizing.ts';
-import type { HTMLPropsRef } from '../../types.ts';
+import type {
+  BP_RowData,
+  BP_TableFeatures,
+  HTMLPropsRef,
+} from '../../types.ts';
 
-export type TableRowHeaderCellProps = HTMLPropsRef<HTMLDivElement> & {
+export type TableRowHeaderCellProps<TData extends BP_RowData> = HTMLPropsRef<HTMLDivElement> & {
+  /**
+   * The TanStack row rendered by this header, used for the row-selection
+   * highlight. Undefined only while the row model has no row at this index.
+   */
+  row?: Row<BP_TableFeatures, TData>;
   rowIndex: number;
   rowHeight: number;
   loading: boolean;
@@ -27,7 +38,8 @@ export type TableRowHeaderCellProps = HTMLPropsRef<HTMLDivElement> & {
   onResizeStart?: (event: RowResizeStartEvent) => void;
 };
 
-export function TableRowHeaderCell({
+export function TableRowHeaderCell<TData extends BP_RowData>({
+  row,
   rowIndex,
   rowHeight,
   loading,
@@ -36,7 +48,7 @@ export function TableRowHeaderCell({
   onResizeStart,
   className,
   ...restProps
-}: TableRowHeaderCellProps) {
+}: TableRowHeaderCellProps<TData>) {
   const selection = useTableSelection();
   return (
     <div
@@ -44,6 +56,7 @@ export function TableRowHeaderCell({
       className={classNames(TABLE_HEADER, rowCellIndexClass(rowIndex), {
         [TABLE_LAST_IN_COLUMN]: isLastInColumn,
         [Classes.LOADING]: loading,
+        [TABLE_ROW_SELECTED]: row?.getIsSelected() ?? false,
       }, className)}
       style={{ flexBasis: rowHeight, height: rowHeight, minHeight: 0 }}
       onMouseDown={(event) => selection?.handleRowHeaderMouseDown(rowIndex, event)}
