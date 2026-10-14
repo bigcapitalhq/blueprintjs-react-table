@@ -295,6 +295,24 @@ Notes:
   or `focusedCell` are controlled, reset them from `onPaginationChange` if they
   should not carry across pages.
 
+### Pagination bar
+
+The bar rendered below the table is the exported `TablePaginationBar` component.
+`withPagination` renders it for you, and it can also be used standalone for a
+custom pagination implementation. It is presentational: page state and
+navigation are owned by the caller.
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `pageIndex` | `number` | — | Zero-based index of the current page. |
+| `pageSize` | `number` | — | Number of rows shown per page. |
+| `pageCount` | `number` | — | Total number of pages. `undefined` means the count is unknown (typical for manual pagination without `rowCount`): "last" navigation is disabled and "next" stays enabled. |
+| `rowCount` | `number` | — | Total number of rows across all pages, used for the "1–10 of 240" summary. When `undefined`, the summary is omitted. |
+| `pageSizeOptions` | `readonly number[]` | `[10, 20, 50, 100]` | Page sizes offered by the rows-per-page select. |
+| `onPageIndexChange` | `(pageIndex: number) => void` | — | Invoked with the requested page index when a navigation control is used. |
+| `onPageSizeChange` | `(pageSize: number) => void` | — | Invoked with the requested page size when the rows-per-page select changes. |
+| `className` | `string` | — | Class name(s) for the bar. |
+
 ## Core props
 
 | Prop | Type | Default | Description |
@@ -329,6 +347,7 @@ Notes:
 | `onRowHeightChanged` | `(index, height) => void` | — | Fires continuously during a row-resize drag (and once when it ends). |
 | `minRowHeight` / `maxRowHeight` | `number` | `6` / `100` | Clamps for row resizing. |
 | `loadingOptions` | `TableLoadingOption[]` | `[]` | Renders skeleton placeholders: `CELLS`, `COLUMN_HEADERS`, `ROW_HEADERS`. |
+| `htmlProps` | `HTMLPropsRef<HTMLDivElement>` | — | Standard HTML attributes spread onto the table's outer container `<div>`; `className` is merged with the container classes, and `ref` points at the container (not the scroll viewport). |
 
 ## Storybook stories
 

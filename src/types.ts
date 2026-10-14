@@ -47,6 +47,11 @@ export type Xor<A, B> =
   | Prettify<{ [k in keyof A]?: never } & B>
   | Prettify<{ [k in keyof B]?: never } & A>;
 
+/**
+ * Standard HTML attributes accepted for the table's outer container element:
+ * React's `HTMLProps`, minus a handful of attributes reserved by the table API,
+ * plus a `ref` to the container element.
+ */
 export type HTMLPropsRef<T extends HTMLElement> = {
   ref?: MutableRefObject<null | T> | null;
 } & Omit<

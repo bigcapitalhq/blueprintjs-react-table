@@ -36,8 +36,16 @@ import { TableContainer } from './container/TableContainer.tsx';
 
 export type BP_TableProps<TData extends BP_RowData> =
   BP_TableOptions<BP_TableFeatures, TData> & {
+    /**
+     * Standard HTML attributes for the table's outer container element (the
+     * `<div>` wrapping the quadrants), e.g. `id`, `aria-*` attributes, and
+     * `className`, which is merged with the container's own classes. The `ref`
+     * points at this container, not the scrollable viewport.
+     */
     htmlProps?: HTMLPropsRef<HTMLDivElement>;
+    /** Height of each body row, in pixels. @default 20 */
     rowHeight?: number;
+    /** Width of the frozen row-header column, in pixels. @default 30 */
     rowHeaderWidth?: number;
     /**
      * If `false`, hides the row headers (the row-number column) and the corner
@@ -49,8 +57,22 @@ export type BP_TableProps<TData extends BP_RowData> =
      * @default true
      */
     enableRowHeader?: boolean;
+    /** Height of the frozen column-header row(s), in pixels. @default 30 */
     columnHeaderHeight?: number;
+    /**
+     * If `true`, column headers can be dragged horizontally to reorder the
+     * columns, mirroring Blueprint's `enableColumnReordering`.
+     *
+     * @default false
+     */
     enableColumnReordering?: boolean;
+    /**
+     * Skeleton placeholders rendered while data loads, mirroring Blueprint's
+     * `loadingOptions`: `CELLS` fills body cells, `COLUMN_HEADERS` fills column
+     * headers, and `ROW_HEADERS` fills row headers.
+     *
+     * @default []
+     */
     loadingOptions?: TableLoadingOption[];
     /**
      * If `true`, a chevron menu appears on each sortable column header (on
