@@ -21,6 +21,7 @@ A Blueprint.js-styled data table for React, built on [TanStack Table v9](https:/
 - **Sorting** — hover a column header and use the chevron menu for *Sort Asc* / *Sort Desc* / *Clear Sort* (`enableSorting`); controlled or uncontrolled via `state.sorting` / `onSortingChange`.
 - **Focused cell & keyboard navigation** — click a cell to focus it; arrow keys move focus, Shift+arrows extend the selection, and Cmd/Ctrl+A selects everything (`enableFocusedCell`).
 - **Region selection** — select cells by dragging, or full rows / columns / the whole table from the headers and corner menu; controlled or uncontrolled (`selectedRegions` / `onSelection`, `selectionModes`).
+- **Row selection (checkboxes)** — opt-in checkboxes in a column right after the row numbers, with a select-all checkbox in the column's header (`showRowSelectionCheckboxes`, `rowSelectionColumnWidth`). Controlled or uncontrolled (`rowSelection` / `defaultRowSelection` + `onRowSelectionChange`, `getRowId`); shift-click selects a range, and checked rows are highlighted. This is independent of the region selection above.
 - **Body context menu** — right-click a cell to open a custom Blueprint `Menu` (`bodyContextMenuRenderer`). A right-click outside the current selection selects the clicked cell first, and the renderer receives the selection (or the clicked cell) as a `BP_MenuContext` that also exposes the TanStack row and cell under the cursor.
 - **Row resizing** — drag the horizontal handle at the bottom of a row header (`enableRowResizing`); controlled or uncontrolled, with configurable min/max heights.
 - **Column visibility** — hide/show columns via the controlled `columnVisibility` prop or TanStack's standard state/`enableHiding` options.
@@ -73,7 +74,7 @@ npm run storybook
 npm run dev
 ```
 
-Storybook is the primary way to explore the component: it contains stories for the basic table, column groups, loading states, ghost cells, focus & selection, sorting (controlled and uncontrolled), virtualization with 10,000 rows, column visibility, row resizing (controlled and uncontrolled), and editable cells.
+Storybook is the primary way to explore the component: it contains stories for the basic table, column groups, loading states, ghost cells, focus & selection, checkbox row selection, sorting (controlled and uncontrolled), virtualization with 10,000 rows, column visibility, row resizing (controlled and uncontrolled), and editable cells.
 
 ## Basic usage
 
@@ -155,6 +156,50 @@ const [sorting, setSorting] = useState<SortingState>([]);
   onSortingChange={setSorting}
 />;
 ```
+
+Row selection is opt-in and follows the usual controlled/uncontrolled pattern.
+Pass `getRowId` so selection follows the data when the table is sorted or
+paginated:
+
+```tsx
+// Uncontrolled: the table owns the selection, seeded by `defaultRowSelection`;
+// `onRowSelectionChange` still reports every change.
+<BP_Table
+  data={data}
+  columns={columns}
+  showRowSelectionCheckboxes
+  defaultRowSelection={{ '2': true }}
+  getRowId={(person) => String(person.id)}
+  onRowSelectionChange={(selection) => console.log(selection)}
+/>;
+
+// Controlled: the caller owns the selection through `rowSelection`.
+const [rowSelection, setRowSelection] = useState<BP_RowSelectionState>({});
+
+<BP_Table
+  data={data}
+  columns={columns}
+  showRowSelectionCheckboxes
+  getRowId={(person) => String(person.id)}
+  rowSelection={rowSelection}
+  onRowSelectionChange={setRowSelection}
+/>;
+```
+
+`rowSelection` is a convenience alias for `state.rowSelection` (and wins when
+both are provided), and `defaultRowSelection` seeds the uncontrolled mode,
+falling back to `initialState.rowSelection`. `onRowSelectionChange` fires in
+both modes, so an uncontrolled table can still report its selection.
+
+`showRowSelectionCheckboxes` renders a checkbox column right after the
+row-number column, with a select-all checkbox (and an indeterminate state) in
+its header. Shift clicking a checkbox selects the inclusive range of rows. The
+column is frozen alongside the row numbers; `rowSelectionColumnWidth` adjusts
+its width (default `30`). Selection is separate from the region selection
+(`selectedRegions`): checked rows are highlighted and can be read back with
+TanStack's `table.getSelectedRowModel()`. Selecting a subset of rows with a
+predicate is a regular table option: `enableRowSelection: (row) => …` disables
+the checkbox of non-selectable rows.
 
 Right-click context menus are customized with a renderer that receives the
 Blueprint-style `BP_MenuContext` (the equivalent of Blueprint's `MenuContext`)
@@ -267,6 +312,11 @@ Notes:
 | `onFocusedRegion` | `(region) => void` | — | Fires when the focused region changes. |
 | `selectedRegions` / `onSelection` | `Region[]` / callback | — | Controlled region selection. |
 | `selectionModes` | `RegionCardinality[]` | all | Restricts which selection types are allowed (cells, rows, columns, table). |
+| `showRowSelectionCheckboxes` | `boolean` | `false` | Checkbox column right after the row numbers, with a select-all checkbox in its header; independent of the region selection. |
+| `rowSelectionColumnWidth` | `number` | `30` | Width of the row-selection checkbox column (only used with `showRowSelectionCheckboxes`). |
+| `rowSelection` | `BP_RowSelectionState` | — | Controlled row selection (`true` = selected). Convenience alias for `state.rowSelection`. |
+| `defaultRowSelection` | `BP_RowSelectionState` | — | Initial row selection for the uncontrolled mode; falls back to `initialState.rowSelection`. |
+| `onRowSelectionChange` | `(selection) => void` | — | Fires whenever the row selection changes, in both the controlled and uncontrolled modes. |
 | `enableRowVirtualization` | `boolean` | `false` | Render only visible rows (plus overscan) — scales to very large data sets. |
 | `numFrozenColumns` | `number` | `0` | Freeze the leftmost N columns in place while the rest scroll; derived from the current column order and visibility. |
 | `numFrozenRows` | `number` | `0` | Freeze the topmost N rows in place while the rest scroll; derived from the current row model (so it follows sorting). |
@@ -287,6 +337,8 @@ Notes:
 | `Loading` | Skeleton placeholders in cells, column headers, and row headers. |
 | `GhostCells` | Empty ghost cells fill leftover space when the table is smaller than its viewport. |
 | `FocusSelection` | Click/drag selection, row/column/corner-header selection, arrow-key focus, Shift+arrows, Cmd/Ctrl+A. |
+| `RowSelection` | Uncontrolled checkbox row selection seeded by `defaultRowSelection`, with shift-click ranges, select-all, and a change listener. |
+| `ControlledRowSelection` | Caller-owned `rowSelection` driven by toolbar buttons and the checkboxes. |
 | `BodyContextMenu` | Right-click a cell for a custom Blueprint menu acting on the clicked cell or the current selection. |
 | `Sorting` | Header chevron menu with Sort Asc / Sort Desc / Clear Sort. |
 | `ControlledSorting` | Sorting state owned by the caller via `state` / `onSortingChange`. |

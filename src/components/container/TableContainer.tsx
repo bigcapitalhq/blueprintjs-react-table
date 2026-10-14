@@ -53,6 +53,8 @@ export type TableContainerProps<TData extends BP_RowData> = HTMLPropsRef<HTMLDiv
     onRowHeightChanged?: (index: number, height: number) => void;
     minRowHeight?: number;
     maxRowHeight?: number;
+    /** Width of the row-selection checkboxes column; `0` hides the column. */
+    selectionColumnWidth?: number;
   };
 
 export function TableContainer<TData extends BP_RowData>({
@@ -83,10 +85,16 @@ export function TableContainer<TData extends BP_RowData>({
   onRowHeightChanged,
   minRowHeight,
   maxRowHeight,
+  selectionColumnWidth = 0,
   className,
   ...restProps
 }: TableContainerProps<TData>) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // The row numbers and the row-selection checkboxes column form the frozen
+  // chrome to the left of the table's columns; the coordinate math (focus,
+  // selection, ghost cells) treats them as one row-header area.
+  const effectiveRowHeaderWidth = rowHeaderWidth + selectionColumnWidth;
 
   // Column headers may render multiple rows (grouped columns) or grow with
   // custom content, so the effective height is measured and shared by the
@@ -112,7 +120,7 @@ export function TableContainer<TData extends BP_RowData>({
     getRowTop: rowResizing.getRowTop,
     getRowHeight: rowResizing.getRowHeight,
     scrollContainerRef,
-    rowHeaderWidth,
+    rowHeaderWidth: effectiveRowHeaderWidth,
     columnHeaderHeight: resolvedColumnHeaderHeight,
     bodyContextMenuRenderer,
     enableBodyContextMenu,
@@ -128,7 +136,7 @@ export function TableContainer<TData extends BP_RowData>({
   const ghosts = useGhostCells({
     enableGhostCells,
     rowHeight,
-    rowHeaderWidth,
+    rowHeaderWidth: effectiveRowHeaderWidth,
     columnHeaderHeight: resolvedColumnHeaderHeight,
     totalWidth: table.getTotalSize(),
     totalHeight: rowResizing.totalHeight,
@@ -162,6 +170,7 @@ export function TableContainer<TData extends BP_RowData>({
         enableRowVirtualization={enableRowVirtualization}
         overscanRowCount={overscanRowCount}
         scrollContainerRef={scrollContainerRef}
+        selectionColumnWidth={selectionColumnWidth}
       />
     </div>
   );

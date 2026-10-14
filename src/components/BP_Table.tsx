@@ -1,5 +1,6 @@
 import type {
   BP_RowData,
+  BP_RowSelectionState,
   BP_TableFeatures,
   BP_TableOptions,
   BP_VisibilityState,
@@ -9,9 +10,15 @@ import {
   hasLoadingOption,
   TableLoadingOption,
 } from '../types.ts';
+import { useCallback } from 'react';
+import {
+  functionalUpdate,
+  type Updater,
+} from '@tanstack/react-table';
 import { useBPTableInstance } from '../hooks/use-bp-table-instance.ts';
 import { useFreezePinning } from '../hooks/use-freeze-pinning.ts';
 import { DEFAULT_OVERSCAN_ROW_COUNT } from '../hooks/use-row-virtualizer.ts';
+import { useUncontrolled } from '../hooks/use-uncontrolled.ts';
 import type {
   FocusedCellCoordinates,
   FocusedRegion,
@@ -22,6 +29,7 @@ import {
   DEFAULT_COLUMN_HEADER_HEIGHT,
   DEFAULT_ROW_HEADER_WIDTH,
   DEFAULT_ROW_HEIGHT,
+  DEFAULT_ROW_SELECTION_COLUMN_WIDTH,
 } from './common/dimensions.ts';
 import type { BP_BodyContextMenuRenderer } from './common/menu-context.ts';
 import { TableContainer } from './container/TableContainer.tsx';
@@ -166,11 +174,57 @@ export type BP_TableProps<TData extends BP_RowData> =
     minRowHeight?: number;
     /** Maximum height a row can be resized to. @default 100 */
     maxRowHeight?: number;
+    /**
+     * If `true`, a row-selection checkboxes column is rendered right after the
+     * row-number column: every row gets a checkbox, and the column's header is
+     * a select-all checkbox (with an indeterminate state). The checkboxes are
+     * wired to TanStack's row-selection state through the `rowSelection` /
+     * `defaultRowSelection` props (or the standard `state.rowSelection` /
+     * `initialState.rowSelection` options) and `onRowSelectionChange`, which
+     * fires in both the controlled and uncontrolled modes. Shift-clicking a
+     * checkbox selects the inclusive range of rows.
+     *
+     * This is independent of the region selection (`selectedRegions`):
+     * checking a row does not select a region, and clicking a row header still
+     * selects a full-row region. Rows checked here are highlighted and can be
+     * read back with TanStack's `table.getSelectedRowModel()`.
+     *
+     * When the table is sorted or paginated, pair it with `getRowId` so
+     * selection follows the data instead of the row position.
+     *
+     * @default false
+     */
+    showRowSelectionCheckboxes?: boolean;
+    /**
+     * Width of the row-selection checkboxes column, in pixels. Only used when
+     * `showRowSelectionCheckboxes` is enabled.
+     *
+     * @default 30
+     */
+    rowSelectionColumnWidth?: number;
+    /**
+     * Controlled row selection, mapping row ids to booleans (`true` =
+     * selected). When provided, selection is fully owned by the caller and
+     * updated via `onRowSelectionChange`, which receives the next selection
+     * value. Convenience alias for `state.rowSelection`; when both are
+     * provided, this prop wins.
+     */
+    rowSelection?: BP_RowSelectionState;
+    /**
+     * Initial row selection for the uncontrolled mode, mapping row ids to
+     * booleans (`true` = selected). Ignored when `rowSelection` (or
+     * `state.rowSelection`) is provided; falls back to
+     * `initialState.rowSelection`. Selection then lives inside the table and
+     * `onRowSelectionChange` still fires on every change.
+     */
+    defaultRowSelection?: BP_RowSelectionState;
   };
 
 export function BP_Table<TData extends BP_RowData>({
   htmlProps,
   rowHeight = DEFAULT_ROW_HEIGHT,
+  showRowSelectionCheckboxes = false,
+  rowSelectionColumnWidth = DEFAULT_ROW_SELECTION_COLUMN_WIDTH,
   rowHeaderWidth = DEFAULT_ROW_HEADER_WIDTH,
   columnHeaderHeight = DEFAULT_COLUMN_HEADER_HEIGHT,
   enableColumnReordering = false,
@@ -197,15 +251,35 @@ export function BP_Table<TData extends BP_RowData>({
   onRowHeightChanged,
   minRowHeight,
   maxRowHeight,
+  rowSelection,
+  defaultRowSelection,
   ...tableOptions
 }: BP_TableProps<TData>) {
+  const [resolvedRowSelection, setResolvedRowSelection] = useUncontrolled<BP_RowSelectionState>({
+    value: rowSelection ?? tableOptions.state?.rowSelection,
+    initialValue: defaultRowSelection ?? tableOptions.initialState?.rowSelection,
+    finalValue: {},
+    onChange: tableOptions.onRowSelectionChange,
+  });
+
+  // TanStack hands out state updaters; the uncontrolled hook consumes plain
+  // values, so resolve the updater against the current selection first.
+  const handleRowSelectionChange = useCallback(
+    (updater: Updater<BP_RowSelectionState>) => {
+      setResolvedRowSelection(functionalUpdate(updater, resolvedRowSelection));
+    },
+    [resolvedRowSelection, setResolvedRowSelection],
+  );
+
   const table = useBPTableInstance<TData>({
     ...tableOptions,
     enableSorting,
     state: {
       ...tableOptions.state,
       ...(columnVisibility !== undefined ? { columnVisibility } : {}),
+      rowSelection: resolvedRowSelection,
     },
+    onRowSelectionChange: handleRowSelectionChange,
   });
 
   useFreezePinning({ table, numFrozenColumns, numFrozenRows });
@@ -246,6 +320,7 @@ export function BP_Table<TData extends BP_RowData>({
       onRowHeightChanged={onRowHeightChanged}
       minRowHeight={minRowHeight}
       maxRowHeight={maxRowHeight}
+      selectionColumnWidth={showRowSelectionCheckboxes ? rowSelectionColumnWidth : 0}
       {...htmlProps}
     />
   );

@@ -7,6 +7,7 @@ import {
   ColumnVisibilityState,
   RowData,
   RowPinningState,
+  RowSelectionState,
   TableFeatures,
   TableOptions,
   TableState,
@@ -91,5 +92,7 @@ export type BP_VisibilityState = ColumnVisibilityState;
 export type BP_ColumnPinningState = ColumnPinningState;
 /** Maps frozen ("top") and bottom-pinned ("bottom") row ids. */
 export type BP_RowPinningState = RowPinningState;
+/** Maps row ids to their selection (`true` = selected), driven by the row-selection checkboxes. */
+export type BP_RowSelectionState = RowSelectionState;
 export type BP_TableInstance<TData extends BP_RowData = BP_RowData> =
   ReactTable<BP_TableFeatures, TData>;

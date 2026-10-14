@@ -9,6 +9,7 @@ import {
   TABLE_LAST_IN_COLUMN,
   TABLE_LAST_IN_ROW,
   TABLE_NO_WRAP_TEXT,
+  TABLE_ROW_SELECTED,
   TABLE_TRUNCATED_CELL,
   TABLE_TRUNCATED_TEXT,
   columnCellIndexClass,
@@ -63,6 +64,7 @@ export function TableBodyCell<TData extends BP_RowData>({
           [TABLE_LAST_IN_ROW]: isLastInRow,
           [TABLE_LAST_IN_COLUMN]: isLastInColumn,
           [Classes.LOADING]: loading,
+          [TABLE_ROW_SELECTED]: cell.row.getIsSelected(),
         },
         bodyCellClassName,
       )}

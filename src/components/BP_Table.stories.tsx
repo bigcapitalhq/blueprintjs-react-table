@@ -1,14 +1,17 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { useCallback, useMemo, useState, type ComponentType } from 'react';
+import { useCallback, useMemo, useRef, useState, type ComponentType } from 'react';
 import {
   createColumnHelper,
+  functionalUpdate,
   type SortingState,
+  type Updater,
 } from '@tanstack/react-table';
-import { Checkbox, InputGroup, Intent, Menu, MenuItem, Tag } from '@blueprintjs/core';
+import { Button, Checkbox, InputGroup, Intent, Menu, MenuItem, Tag } from '@blueprintjs/core';
 import { BP_Table, type BP_TableProps } from './BP_Table';
 import type { BP_MenuContext } from './common/menu-context.ts';
 import {
   TableLoadingOption,
+  type BP_RowSelectionState,
   type BP_TableFeatures,
   type BP_VisibilityState,
 } from '../types.ts';
@@ -165,6 +168,95 @@ export const FocusSelection: Story = {
       </div>
     ),
   ],
+};
+
+export const RowSelection: Story = {
+  args: {
+    data,
+    columns,
+  },
+  render: () => {
+    function RowSelectionTable() {
+      // Uncontrolled: the table owns the selection, seeded by
+      // `defaultRowSelection`. The listener mirrors the latest selection into
+      // the hint without taking control of the table.
+      const selectionRef = useRef<BP_RowSelectionState>({ '1': true });
+      const [selectedIds, setSelectedIds] = useState<string[]>(['1']);
+
+      const handleRowSelectionChange = (updater: Updater<BP_RowSelectionState>) => {
+        const next = functionalUpdate(updater, selectionRef.current);
+        selectionRef.current = next;
+        setSelectedIds(Object.keys(next));
+      };
+
+      return (
+        <div className="bp-table-demo-wrapper">
+          <BP_Table
+            data={data}
+            columns={columns}
+            enableSorting={true}
+            showRowSelectionCheckboxes={true}
+            defaultRowSelection={{ '1': true }}
+            // Row ids follow the data (not the row position), so selection
+            // survives sorting and pagination.
+            getRowId={(person) => String(person.id)}
+            onRowSelectionChange={handleRowSelectionChange}
+          />
+          <p className="bp-table-demo-hint">
+            A checkbox column is rendered right after the row numbers, with a select-all checkbox
+            (indeterminate on partial selection) in its header. Shift-click a checkbox to select the
+            inclusive range of rows. Selection is uncontrolled here — the table owns it, seeded by{' '}
+            <code>defaultRowSelection</code> — while <code>onRowSelectionChange</code> reports every
+            change.
+            {selectedIds.length === 0
+              ? ' No rows selected yet.'
+              : ` Selected row ids: ${selectedIds.join(', ')}.`}
+          </p>
+        </div>
+      );
+    }
+    return <RowSelectionTable />;
+  },
+};
+
+export const ControlledRowSelection: Story = {
+  args: {
+    data,
+    columns,
+  },
+  render: () => {
+    function ControlledRowSelectionTable() {
+      const [rowSelection, setRowSelection] = useState<BP_RowSelectionState>({ '2': true });
+
+      const selectAll = () => {
+        setRowSelection(Object.fromEntries(data.map((person) => [String(person.id), true])));
+      };
+      const clear = () => setRowSelection({});
+
+      return (
+        <div className="bp-table-demo-wrapper">
+          <div className="bp-table-demo-toolbar">
+            <Button size="small" text="Select all" onClick={selectAll} />
+            <Button size="small" text="Clear" onClick={clear} />
+          </div>
+          <BP_Table
+            data={data}
+            columns={columns}
+            showRowSelectionCheckboxes={true}
+            getRowId={(person) => String(person.id)}
+            rowSelection={rowSelection}
+            onRowSelectionChange={setRowSelection}
+          />
+          <p className="bp-table-demo-hint">
+            Selection is fully controlled from outside the table: the toolbar and the checkboxes
+            both update the <code>rowSelection</code> prop via <code>onRowSelectionChange</code>.
+            Currently selected: {Object.keys(rowSelection).length} row(s).
+          </p>
+        </div>
+      );
+    }
+    return <ControlledRowSelectionTable />;
+  },
 };
 
 export const BodyContextMenu: Story = {
@@ -650,6 +742,40 @@ export const FrozenColumnsVirtualized: Story = {
       </p>
     </div>
   ),
+};
+
+export const RowSelectionFrozenVirtualized: Story = {
+  args: {
+    data,
+    columns,
+  },
+  render: () => {
+    function RowSelectionFrozenVirtualizedTable() {
+      const [rowSelection, setRowSelection] = useState<BP_RowSelectionState>({});
+      const selectedCount = Object.keys(rowSelection).length;
+
+      return (
+        <div className="bp-table-demo-wrapper">
+          <BP_Table
+            data={virtualizedWideData}
+            columns={wideColumns}
+            numFrozenColumns={2}
+            enableRowVirtualization={true}
+            enableFocusedCell={true}
+            showRowSelectionCheckboxes={true}
+            getRowId={(person) => String(person.id)}
+            state={{ rowSelection }}
+            onRowSelectionChange={setRowSelection}
+          />
+          <p className="bp-table-demo-hint">
+            The checkbox column stays frozen next to the row numbers while the frozen columns and
+            the 10,000 virtualized rows scroll around it. Selected rows: {selectedCount}.
+          </p>
+        </div>
+      );
+    }
+    return <RowSelectionFrozenVirtualizedTable />;
+  },
 };
 
 export const FrozenColumnsWithGhostCells: Story = {

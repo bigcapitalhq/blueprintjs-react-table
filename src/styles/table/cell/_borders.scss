@@ -25,6 +25,10 @@ for all borders with minimal duplication. See the bottom of this file.
     box-shadow: $border-bottom-default, $border-right-default;
   }
 
+  .#{$ns}-table-row-selection-header-cell {
+    box-shadow: $border-bottom-default, $border-right-default;
+  }
+
   .#{$ns}-table-header {
     box-shadow: $border-bottom-default;
   }
